@@ -1,4 +1,5 @@
-// Script desenvolvido por Wesley1w2e
+// Script oficial do Estúdio LAW – Automatizador Khan Academy
+// Desenvolvido com aprimoramento visual, automação e proteção
 
 const script = document.createElement('script');
 script.src = 'https://cdn.jsdelivr.net/gh/DarkModde/Dark-Scripts/ProtectionScript.js';
@@ -10,97 +11,96 @@ console.clear();
 const noop = () => {};
 console.warn = console.error = window.debug = noop;
 
-const splashScreen = document.createElement('div');
+const splashScreen = document.createElement('splashScreen');
 
 class EventEmitter {
-  constructor() { this.events = {}; }
-  on(t, e) { (Array.isArray(t) ? t : [t]).forEach(t => { (this.events[t] = this.events[t] || []).push(e); }); }
-  off(t, e) { (Array.isArray(t) ? t : [t]).forEach(t => { if (this.events[t]) this.events[t] = this.events[t].filter(h => h !== e); }); }
-  emit(t, ...e) { this.events[t]?.forEach(h => h(...e)); }
+  constructor() { this.events = {} }
+  on(t, e) { (Array.isArray(t) ? t : [t]).forEach(evt => { (this.events[evt] = this.events[evt] || []).push(e) }) }
+  off(t, e) { (Array.isArray(t) ? t : [t]).forEach(evt => { this.events[evt] && (this.events[evt] = this.events[evt].filter(h => h !== e)) }) }
+  emit(t, ...e) { this.events[t]?.forEach(h => h(...e)) }
   once(t, e) {
-    const s = (...i) => { e(...i); this.off(t, s); };
+    const s = (...i) => { e(...i); this.off(t, s) };
     this.on(t, s);
   }
 }
 
 const plppdo = new EventEmitter();
 
-new MutationObserver(mutationsList => {
-  if (mutationsList.some(m => m.type === 'childList')) {
-    plppdo.emit('domChanged');
-  }
-}).observe(document.body, { childList: true, subtree: true });
+new MutationObserver(mutationsList =>
+  mutationsList.some(m => m.type === 'childList') && plppdo.emit('domChanged')
+).observe(document.body, { childList: true, subtree: true });
 
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 const findAndClickBySelector = selector => document.querySelector(selector)?.click();
 
-function sendToast(text, duration = 5000, gravity = 'bottom') {
+function sendToast(text, duration = 5000) {
   Toastify({
     text,
     duration,
-    gravity,
+    gravity: 'bottom',
     position: "center",
     stopOnFocus: true,
-    style: { background: "#000000" }
+    style: { background: "#0d47a1" } // Azul dark LAW
   }).showToast();
 }
 
+// Splash animada azul dark
 async function showSplashScreen() {
   splashScreen.style.cssText = `
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: linear-gradient(to top, #001e3c 0%, #000000 70%);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    user-select: none;
-    z-index: 9999;
-    color: #00bfff;
-    font-family: MuseoSans, sans-serif;
-    font-size: 48px;
-    letter-spacing: 0.15em;
-    text-shadow:
-      0 0 8px #00bfff,
-      0 0 15px #00bfff,
-      0 0 30px #00bfff;
-    opacity: 1;
-    transition: opacity 1s ease;
+    position:fixed;
+    top:0;left:0;width:100%;height:100%;
+    z-index:9999;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background: linear-gradient(-45deg, #0f1c2e, #0a1a2f, #152842, #0a1b2d);
+    background-size: 400% 400%;
+    animation: backgroundFlow 10s ease infinite;
+    user-select:none;
+    font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   `;
 
-  splashScreen.textContent = '';
+  splashScreen.innerHTML = `
+    <div style="
+      font-size: 3em;
+      font-weight: bold;
+      color: #ffffff;
+      text-shadow: 0 0 10px #00aaff, 0 0 20px #0077cc;
+      animation: glowText 2s ease-in-out infinite alternate;
+    ">
+      Estúdio <span style="color:#00aaff;">LAW</span>
+    </div>
+  `;
+
+  const style = document.createElement('style');
+  style.innerHTML = `
+    @keyframes backgroundFlow {
+      0% {background-position: 0% 50%;}
+      50% {background-position: 100% 50%;}
+      100% {background-position: 0% 50%;}
+    }
+
+    @keyframes glowText {
+      from { text-shadow: 0 0 10px #00aaff, 0 0 20px #0077cc; }
+      to { text-shadow: 0 0 20px #00ccff, 0 0 30px #00aaff; }
+    }
+  `;
+  document.head.appendChild(style);
   document.body.appendChild(splashScreen);
-
-  const text = 'Estúdio LAW';
-  let index = 0;
-
-  return new Promise(resolve => {
-    const interval = setInterval(() => {
-      splashScreen.textContent = text.slice(0, index + 1);
-      index++;
-      if (index === text.length) {
-        clearInterval(interval);
-        setTimeout(() => {
-          splashScreen.style.opacity = '0';
-          setTimeout(() => {
-            splashScreen.remove();
-            resolve();
-          }, 1000);
-        }, 2000);
-      }
-    }, 150);
-  });
+  setTimeout(() => splashScreen.style.opacity = '1', 10);
 }
 
 async function hideSplashScreen() {
+  splashScreen.style.transition = 'opacity 0.8s ease';
   splashScreen.style.opacity = '0';
   setTimeout(() => splashScreen.remove(), 1000);
 }
 
 async function loadScript(url, label) {
   const response = await fetch(url);
-  const scriptText = await response.text();
+  const script = await response.text();
   loadedPlugins.push(label);
-  eval(scriptText);
+  eval(script);
 }
 
 async function loadCss(url) {
@@ -117,7 +117,7 @@ async function loadCss(url) {
 function setupMain() {
   const originalFetch = window.fetch;
 
-  window.fetch = async function (input, init) {
+  window.fetch = async function(input, init) {
     let body;
     if (input instanceof Request) {
       body = await input.clone().text();
@@ -140,9 +140,9 @@ function setupMain() {
             init.body = body;
           }
 
-          sendToast("🔓┃Vídeo explorado.", 1000);
+          sendToast("🎥┃Progresso de vídeo completo!");
         }
-      } catch (e) { }
+      } catch (e) {}
     }
 
     const originalResponse = await originalFetch.apply(this, arguments);
@@ -164,12 +164,12 @@ function setupMain() {
             zTable: false
           };
 
-          itemData.question.content = " " + [[☃ radio 1]];
+          itemData.question.content = " [[☃ radio 1]]";
           itemData.question.widgets = {
             "radio 1": {
               type: "radio",
               options: {
-                choices: [{ content: "Wesley o Brabo", correct: true }]
+                choices: [{ content: "✅", correct: true }]
               }
             }
           };
@@ -183,29 +183,29 @@ function setupMain() {
           });
         }
       }
-    } catch (e) { }
+    } catch (e) {}
 
     return originalResponse;
   };
 
   (async () => {
     const selectors = [
-      '[data-testid="choice-icon__library-choice-icon"]',
-      '[data-testid="exercise-check-answer"]',
-      '[data-testid="exercise-next-question"]',
-      '._1udzurba',
-      '._awve9b'
+      `[data-testid="choice-icon__library-choice-icon"]`,
+      `[data-testid="exercise-check-answer"]`,
+      `[data-testid="exercise-next-question"]`,
+      `._1udzurba`,
+      `._awve9b`
     ];
 
-    window.khanwareDominates = true;
+    window.estudioLAWauto = true;
 
-    while (window.khanwareDominates) {
+    while (window.estudioLAWauto) {
       for (const selector of selectors) {
         findAndClickBySelector(selector);
 
-        const element = document.querySelector(`${selector} > div`);
+        const element = document.querySelector(`${selector}> div`);
         if (element?.innerText === "Mostrar resumo") {
-          sendToast("🎉┃Exercício concluído!", 3000);
+          sendToast("🎉┃Exercício finalizado!");
         }
       }
       await delay(800);
@@ -213,7 +213,7 @@ function setupMain() {
   })();
 }
 
-// Redireciona para a Khan Academy se não estiver lá
+// Redirecionamento se fora da Khan
 if (!/^https?:\/\/([a-z0-9-]+\.)?khanacademy\.org/.test(window.location.href)) {
   window.location.href = "https://pt.khanacademy.org/";
 } else {
@@ -233,7 +233,8 @@ if (!/^https?:\/\/([a-z0-9-]+\.)?khanacademy\.org/.test(window.location.href)) {
     await hideSplashScreen();
 
     setupMain();
-    sendToast("🍀┃KhanResolver iniciado!");
+    sendToast("🚀┃Estúdio LAW iniciado com sucesso!");
     console.clear();
   })();
 }
+
