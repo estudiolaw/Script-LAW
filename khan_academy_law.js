@@ -3,7 +3,7 @@
 (async () => {
   // --- Lista de senhas válidas e vencimento ---
   const validPasswords = [
-    { senha: '1BMIDIAS', vencimento: '2025-12-31' },
+    { senha: '1BMIDIAS', vencimento: '2026-01-01' },
     { senha: 'KhanLAW01', vencimento: '2025-06-30' },
     { senha: 'EstudioLAW2', vencimento: '2025-08-15' },
     { senha: 'LAWpass123', vencimento: '2025-07-31' },
