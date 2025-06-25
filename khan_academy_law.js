@@ -44,7 +44,7 @@ function sendToast(text, duration = 5000) {
   }).showToast();
 }
 
-// Splash animada azul dark
+// Splash animada azul dark com brilho na letra
 async function showSplashScreen() {
   splashScreen.style.cssText = `
     position:fixed;
@@ -73,6 +73,7 @@ async function showSplashScreen() {
   `;
 
   const style = document.createElement('style');
+  style.id = 'estudio-law-style';
   style.innerHTML = `
     @keyframes backgroundFlow {
       0% {background-position: 0% 50%;}
@@ -85,7 +86,9 @@ async function showSplashScreen() {
       to { text-shadow: 0 0 20px #00ccff, 0 0 30px #00aaff; }
     }
   `;
-  document.head.appendChild(style);
+  if (!document.getElementById('estudio-law-style')) {
+    document.head.appendChild(style);
+  }
   document.body.appendChild(splashScreen);
   setTimeout(() => splashScreen.style.opacity = '1', 10);
 }
@@ -213,7 +216,7 @@ function setupMain() {
   })();
 }
 
-// Redirecionamento se fora da Khan
+// Redireciona para versão PT da Khan se estiver fora do domínio
 if (!/^https?:\/\/([a-z0-9-]+\.)?khanacademy\.org/.test(window.location.href)) {
   window.location.href = "https://pt.khanacademy.org/";
 } else {
@@ -231,6 +234,12 @@ if (!/^https?:\/\/([a-z0-9-]+\.)?khanacademy\.org/.test(window.location.href)) {
 
     await delay(2000);
     await hideSplashScreen();
+
+    setupMain();
+    sendToast("🚀┃Estúdio LAW iniciado com sucesso!");
+    console.clear();
+  })();
+}
 
     setupMain();
     sendToast("🚀┃Estúdio LAW iniciado com sucesso!");
