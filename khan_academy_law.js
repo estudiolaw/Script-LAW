@@ -44,7 +44,7 @@ function sendToast(text, duration = 5000) {
   }).showToast();
 }
 
-// Splash animada azul dark com brilho na letra
+// Splash animada azul dark com animação fade+slide na letra
 async function showSplashScreen() {
   splashScreen.style.cssText = `
     position:fixed;
@@ -61,12 +61,15 @@ async function showSplashScreen() {
   `;
 
   splashScreen.innerHTML = `
-    <div style="
+    <div id="estudio-law-text" style="
       font-size: 3em;
       font-weight: bold;
       color: #ffffff;
       text-shadow: 0 0 10px #00aaff, 0 0 20px #0077cc;
-      animation: glowText 2s ease-in-out infinite alternate;
+      animation: glowText 2s ease-in-out infinite alternate,
+                 fadeSlideIn 1.5s ease forwards;
+      opacity: 0;
+      transform: translateY(30px);
     ">
       Estúdio <span style="color:#00aaff;">LAW</span>
     </div>
@@ -84,6 +87,13 @@ async function showSplashScreen() {
     @keyframes glowText {
       from { text-shadow: 0 0 10px #00aaff, 0 0 20px #0077cc; }
       to { text-shadow: 0 0 20px #00ccff, 0 0 30px #00aaff; }
+    }
+
+    @keyframes fadeSlideIn {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
   `;
   if (!document.getElementById('estudio-law-style')) {
@@ -241,9 +251,4 @@ if (!/^https?:\/\/([a-z0-9-]+\.)?khanacademy\.org/.test(window.location.href)) {
   })();
 }
 
-    setupMain();
-    sendToast("🚀┃Estúdio LAW iniciado com sucesso!");
-    console.clear();
-  })();
-}
 
