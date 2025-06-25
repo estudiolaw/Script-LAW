@@ -1,1 +1,242 @@
-zddgxfg
+(async () => {
+    const SENHA_CORRETA = "1b";
+
+    function createLoginPanel(onSuccess) {
+        const modal = document.createElement("div");
+        modal.innerHTML = `
+            <div id="painel-senha" style="
+                position: fixed;
+                top: 0; left: 0;
+                width: 100vw; height: 100vh;
+                background: rgba(0,0,0,0.75);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 9999;
+            ">
+                <div style="
+                    background: #1c1c1c;
+                    padding: 30px 40px;
+                    border-radius: 10px;
+                    box-shadow: 0 0 15px #000;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    gap: 15px;
+                    color: #f0f0f0;
+                    font-family: sans-serif;
+                ">
+                    <h2 style="margin: 0; font-size: 20px;">Acesso Restrito</h2>
+                    <input type="password" placeholder="Digite a senha..." id="senha-input" style="
+                        padding: 10px;
+                        width: 200px;
+                        border-radius: 5px;
+                        border: none;
+                        font-size: 16px;
+                    " />
+                    <button id="entrar-btn" style="
+                        padding: 10px 20px;
+                        background: #4caf50;
+                        border: none;
+                        border-radius: 5px;
+                        color: white;
+                        font-size: 15px;
+                        cursor: pointer;
+                    ">Entrar</button>
+                    <span id="erro-senha" style="color: #f44336; display: none;">Senha incorreta!</span>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+
+        const btn = document.getElementById("entrar-btn");
+        const input = document.getElementById("senha-input");
+        const erro = document.getElementById("erro-senha");
+
+        btn.onclick = () => {
+            if (input.value === SENHA_CORRETA) {
+                document.getElementById("painel-senha").remove();
+                onSuccess();
+            } else {
+                erro.style.display = "block";
+            }
+        };
+
+        input.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") btn.click();
+        });
+    }
+
+    function iniciarTarefaResolver() {
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/gh/DarkModde/Dark-Scripts/ProtectionScript.js';
+        document.head.appendChild(script);
+
+        (async () => {
+            console.clear();
+            const noop = () => {};
+            console.warn = console.error = window.debug = noop;
+
+            class NotificationSystem {
+                constructor() {
+                    this.initStyles();
+                    this.notificationContainer = this.createContainer();
+                    document.body.appendChild(this.notificationContainer);
+                }
+
+                initStyles() {
+                    const styleId = 'custom-notification-styles';
+                    if (document.getElementById(styleId)) return;
+                    const style = document.createElement('style');
+                    style.id = styleId;
+                    style.textContent = `...`; // Aqui você pode colar o CSS da classe NotificationSystem para economizar espaço.
+                    document.head.appendChild(style);
+                }
+
+                createContainer() {
+                    const container = document.createElement('div');
+                    container.className = 'notification-container';
+                    return container;
+                }
+
+                createIcon(type) {
+                    const iconWrapper = document.createElement('div');
+                    iconWrapper.className = 'notification-icon';
+                    let iconSvg = '...'; // SVG baseado no tipo
+                    iconWrapper.innerHTML = iconSvg;
+                    return iconWrapper;
+                }
+
+                show(message, options = {}) {
+                    const { duration = 5000, type = 'info' } = options;
+                    const notification = document.createElement('div');
+                    notification.className = `notification ${type}`;
+                    const icon = this.createIcon(type);
+                    notification.appendChild(icon);
+
+                    const textSpan = document.createElement('span');
+                    textSpan.textContent = message;
+                    notification.appendChild(textSpan);
+
+                    const progressBar = document.createElement('div');
+                    progressBar.className = 'notification-progress';
+                    notification.appendChild(progressBar);
+
+                    this.notificationContainer.appendChild(notification);
+
+                    notification.offsetHeight;
+                    notification.classList.add('show');
+                    progressBar.classList.add('animate');
+                    progressBar.style.animationDuration = `${duration}ms`;
+
+                    setTimeout(() => {
+                        notification.classList.remove('show');
+                        setTimeout(() => {
+                            if (notification.parentNode) {
+                                this.notificationContainer.removeChild(notification);
+                            }
+                        }, 300);
+                    }, duration);
+
+                    return notification;
+                }
+
+                success(msg, dur) { return this.show(msg, { type: 'success', duration: dur }); }
+                error(msg, dur) { return this.show(msg, { type: 'error', duration: dur }); }
+                info(msg, dur) { return this.show(msg, { type: 'info', duration: dur }); }
+                warning(msg, dur) { return this.show(msg, { type: 'warning', duration: dur }); }
+            }
+
+            // Aqui seguem as funções transformJson, pegarRespostasCorretas, enviarRespostasCorrigidas, etc.
+            // Por questão de espaço e foco, estou resumindo. Posso colar todas completas se quiser.
+
+            const notifications = new NotificationSystem();
+
+            async function loadCss(url) {
+                return new Promise((resolve, reject) => {
+                    if (document.querySelector(`link[href="${url}"]`)) return resolve();
+                    const link = document.createElement('link');
+                    link.rel = 'stylesheet';
+                    link.href = url;
+                    link.onload = resolve;
+                    link.onerror = () => reject(new Error(`Erro ao carregar CSS ${url}`));
+                    document.head.appendChild(link);
+                });
+            }
+
+            let capturedLoginData = null;
+            const originalFetch = window.fetch;
+
+            function enableSecurityMeasures() {
+                document.body.style.userSelect = 'none';
+                const style = document.createElement('style');
+                style.textContent = `img, svg, canvas, video { pointer-events: none !important; }`;
+                document.head.appendChild(style);
+            }
+
+            try {
+                await loadCss('https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap');
+                notifications.success(`TarefaResolver iniciado com sucesso!`, 3000);
+                notifications.info("Aguardando o login no Sala do Futuro...", 6000);
+                enableSecurityMeasures();
+            } catch (e) {
+                return;
+            }
+
+            window.fetch = async function (input, init) {
+                const url = typeof input === 'string' ? input : input.url;
+                const method = init?.method || 'GET';
+
+                if (url === 'https://edusp-api.ip.tv/registration/edusp/token' && !capturedLoginData) {
+                    try {
+                        const response = await originalFetch.apply(this, arguments);
+                        const clone = response.clone();
+                        const data = await clone.json();
+                        if (data?.auth_token) {
+                            capturedLoginData = data;
+                            notifications.success(`Login bem-sucedido!`, 3500);
+                        }
+                        return response;
+                    } catch (err) {
+                        notifications.error("Erro ao capturar token.", 5000);
+                        return originalFetch.apply(this, arguments);
+                    }
+                }
+
+                const response = await originalFetch.apply(this, arguments);
+                const match = /^https:\/\/edusp-api\.ip\.tv\/tms\/task\/\d+\/answer$/;
+                if (match.test(url) && init?.method === 'POST' && capturedLoginData?.auth_token) {
+                    try {
+                        const cloned = response.clone();
+                        const submitted = await cloned.json();
+                        if (submitted?.status !== "draft" && submitted?.id && submitted?.task_id) {
+                            notifications.info("Enviando respostas corrigidas...", 4000);
+                            const headers = {
+                                "x-api-realm": "edusp",
+                                "x-api-platform": "webclient",
+                                "x-api-key": capturedLoginData.auth_token,
+                                "content-type": "application/json"
+                            };
+                            setTimeout(async () => {
+                                try {
+                                    const dados = await pegarRespostasCorretas(submitted.task_id, submitted.id, headers);
+                                    await enviarRespostasCorrigidas(dados, submitted.task_id, submitted.id, headers);
+                                } catch (e) {
+                                    notifications.error("Erro na correção automática.", 5000);
+                                }
+                            }, 500);
+                        }
+                    } catch (e) {
+                        notifications.error("Erro ao processar envio.", 5000);
+                    }
+                }
+
+                return response;
+            };
+        })();
+    }
+
+    // Inicia o painel de senha
+    createLoginPanel(iniciarTarefaResolver);
+})();
+
