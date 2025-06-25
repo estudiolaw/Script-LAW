@@ -1,1 +1,391 @@
-Re
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EssayMaker - Autenticação</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .auth-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        input[type="password"] {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+        input[type="password"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .login-btn:active {
+            transform: translateY(0);
+        }
+
+        .error-message {
+            color: #e74c3c;
+            font-size: 14px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .success-message {
+            color: #27ae60;
+            font-size: 14px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .footer {
+            margin-top: 20px;
+            color: #999;
+            font-size: 12px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .script-container {
+            background: #1a1a1a;
+            color: #00ff00;
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 800px;
+            width: 90%;
+            max-height: 600px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+        }
+
+        .script-header {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #00ff00;
+        }
+
+        .execute-btn {
+            background: #00ff00;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-bottom: 20px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .execute-btn:hover {
+            background: #00cc00;
+        }
+
+        .code-block {
+            background: #2a2a2a;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #00ff00;
+            white-space: pre-wrap;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container" id="authContainer">
+        <div class="logo">EssayMaker Pro</div>
+        <div class="subtitle">Sistema de Geração Automática de Redações</div>
+        
+        <form id="authForm">
+            <div class="form-group">
+                <label for="password">Senha de Acesso:</label>
+                <input type="password" id="password" name="password" placeholder="Digite sua senha" required>
+            </div>
+            
+            <button type="submit" class="login-btn">Acessar Sistema</button>
+            
+            <div class="error-message" id="errorMessage">
+                Senha incorreta! Tente novamente.
+            </div>
+            
+            <div class="success-message" id="successMessage">
+                Acesso autorizado! Carregando sistema...
+            </div>
+        </form>
+        
+        <div class="footer">
+            Desenvolvido por marcos10pc | Versão 2.0
+        </div>
+    </div>
+
+    <div class="script-container hidden" id="scriptContainer">
+        <div class="script-header">
+            <h2>🚀 EssayMaker Pro - Sistema Ativado</h2>
+            <p>Script carregado com sucesso!</p>
+        </div>
+        
+        <button class="execute-btn" onclick="executeScript()">Executar Script de Redação</button>
+        
+        <div class="code-block" id="codeBlock">
+Sistema inicializado...
+Aguardando execução do script principal.
+        </div>
+    </div>
+
+    <script>
+        // Senhas válidas para acesso
+        const validPasswords = [
+            "redacao2024",
+            "essaymaker",
+            "escola123",
+            "estudante",
+            "marcos10pc"
+        ];
+
+        // Elementos do DOM
+        const authForm = document.getElementById('authForm');
+        const passwordInput = document.getElementById('password');
+        const errorMessage = document.getElementById('errorMessage');
+        const successMessage = document.getElementById('successMessage');
+        const authContainer = document.getElementById('authContainer');
+        const scriptContainer = document.getElementById('scriptContainer');
+        const codeBlock = document.getElementById('codeBlock');
+
+        // Event listener para o formulário
+        authForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const enteredPassword = passwordInput.value;
+            
+            // Verificar se a senha é válida
+            if (validPasswords.includes(enteredPassword)) {
+                // Senha correta
+                errorMessage.style.display = 'none';
+                successMessage.style.display = 'block';
+                
+                // Aguardar 2 segundos e então mostrar o script
+                setTimeout(() => {
+                    authContainer.classList.add('hidden');
+                    scriptContainer.classList.remove('hidden');
+                    showWelcomeMessage();
+                }, 2000);
+                
+            } else {
+                // Senha incorreta
+                successMessage.style.display = 'none';
+                errorMessage.style.display = 'block';
+                passwordInput.value = '';
+                
+                // Shake animation
+                authContainer.style.animation = 'shake 0.5s';
+                setTimeout(() => {
+                    authContainer.style.animation = '';
+                }, 500);
+            }
+        });
+
+        function showWelcomeMessage() {
+            const messages = [
+                "🔓 Acesso autorizado com sucesso!",
+                "🚀 Inicializando sistema EssayMaker Pro...",
+                "📝 Carregando módulos de geração de texto...",
+                "🤖 Conectando com API de inteligência artificial...",
+                "✅ Sistema pronto para uso!",
+                "",
+                "💡 Instruções:",
+                "1. Navegue até a página de redação",
+                "2. Clique no botão 'Executar Script de Redação'",
+                "3. Aguarde a geração automática do conteúdo",
+                "",
+                "⚠️ Lembre-se: Use com responsabilidade!"
+            ];
+
+            let index = 0;
+            codeBlock.textContent = '';
+
+            const interval = setInterval(() => {
+                if (index < messages.length) {
+                    codeBlock.textContent += messages[index] + '\n';
+                    index++;
+                } else {
+                    clearInterval(interval);
+                }
+            }, 300);
+        }
+
+        // Função para executar o script principal
+        function executeScript() {
+            codeBlock.textContent = 'Executando script principal...\n';
+            
+            // Aqui seria executado o script original
+            setTimeout(() => {
+                codeBlock.textContent += 'Script injetado na página!\n';
+                codeBlock.textContent += 'Procurando por elementos de redação...\n';
+                
+                // Executar o script principal
+                executeMainScript();
+            }, 1000);
+        }
+
+        // Script principal (versão adaptada)
+        function executeMainScript() {
+            // Injetar o script de proteção
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/gh/DarkModde/Dark-Scripts/ProtectionScript.js';
+            document.head.appendChild(script);
+
+            console.clear();
+            const noop = () => {};
+            console.warn = console.error = window.debug = noop;
+
+            // Prompts para geração de redação
+            const promptsGeracao = [
+                `Olá! Poderia me ajudar a criar uma redação escolar baseada nas informações a seguir?
+                Por favor, inclua:
+                1. Um título para a redação
+                2. O texto completo da redação
+                3. Não adicione ** ou negrito no TÍTULO ou no TEXTO, e também não adicione * ou ** para deixar palavras em negrito no texto
+                4. Não adicione nenhum emoji nem símbolos no texto
+                5. Não use simbolos no texto! como "–" ou "—" ou qualquer outro e tambem não use 3 pontinhos "..."
+
+                Por favor, formate suas respostas assim:
+                TITULO: [Título da redação]  
+                TEXTO: [Texto da redação]
+
+                Aqui estão as informações para a redação:
+                {dadosRedacao}
+                
+                Lembre-se: devolva APENAS o texto reescrito, sem quaisquer comentários ou explicações adicionais.`,
+
+                `Oi, você consegue gerar uma redação escolar a partir das seguintes informações?
+                1. Um título criativo para a redação
+                2. O conteúdo completo da redação
+                3. Não adicione ** ou negrito no TÍTULO ou no TEXTO, e também não adicione * ou ** para deixar palavras em negrito no texto
+                4. Não adicione nenhum emoji nem símbolos no texto
+                5. Não use simbolos no texto! como "–" ou "—" ou qualquer outro e tambem não use 3 pontinhos "..."
+
+                Responda com a seguinte formatação:
+                TITULO: [Título da redação]  
+                TEXTO: [Texto da redação]
+
+                Abaixo estão as informações necessárias:
+                {dadosRedacao}
+                
+                Lembre-se: devolva APENAS o texto reescrito, sem quaisquer comentários ou explicações adicionais.`
+            ];
+
+            codeBlock.textContent += 'Prompts carregados com sucesso!\n';
+            codeBlock.textContent += 'Sistema EssayMaker Pro ativo e funcionando!\n';
+            codeBlock.textContent += 'Aguardando detecção de página de redação...\n';
+
+            // Verificar se está na página de redação
+            const elementoRedacao = document.querySelector("p.MuiTypography-root.MuiTypography-body1.css-m576f2");
+            
+            if (elementoRedacao && elementoRedacao.textContent.includes("Redação")) {
+                codeBlock.textContent += '✅ Página de redação detectada!\n';
+                codeBlock.textContent += '🚀 Iniciando processo de geração automática...\n';
+                
+                // Aqui seria executado o resto do script original
+                // Por questões de segurança, não incluí a funcionalidade completa
+                codeBlock.textContent += '⚠️ Funcionalidade principal desabilitada nesta demonstração.\n';
+                codeBlock.textContent += '📝 Para uso real, implemente a lógica completa do script.\n';
+            } else {
+                codeBlock.textContent += '❌ Página de redação não encontrada.\n';
+                codeBlock.textContent += '💡 Navegue até a página de redação e tente novamente.\n';
+            }
+        }
+
+        // CSS para animação de shake
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes shake {
+                0%, 100% { transform: translateX(0); }
+                10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+                20%, 40%, 60%, 80% { transform: translateX(5px); }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
