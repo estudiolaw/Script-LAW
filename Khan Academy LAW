@@ -1,0 +1,411 @@
+// ==UserScript==
+// @name         KhanResolver LAW - Sistema Protegido Completo
+// @namespace    https://github.com/wesley1w2e/
+// @version      3.0
+// @description  Sistema de senha animado, vencimento, proteção, comemoração e splash para scripts na Khan Academy
+// @author       Wesley1w2e
+// @match        *://*.khanacademy.org/*
+// @grant        none
+// ==/UserScript==
+
+(function() {
+    'use strict';
+
+    // =========================
+    // CONFIGURAÇÃO DO SISTEMA
+    // =========================
+
+    // Senhas válidas
+    const SYSTEM_PASSWORDS = [
+        "estudiolaw123","wesley2024","khanresolver","lawstudio",
+        "admin123","resolver2024","master123","dev2024","lawtech","premium123"
+    ];
+
+    // Data de expiração (YYYY-MM-DD)
+    const EXPIRATION_DATE = "2024-12-31";
+    const SCRIPT_AUTHOR = "Wesley1w2e";
+    const SCRIPT_VERSION = "3.0";
+
+    // Visual
+    const THEME_COLOR = "#ff6600";
+    const SPLASH_TEXT = "Estúdio LAW";
+
+    // =========================
+    // NÃO EDITE ABAIXO
+    // =========================
+
+    // Checa vencimento
+    function checkExpiration() {
+        const currentDate = new Date();
+        const expDate = new Date(EXPIRATION_DATE + "T23:59:59");
+        if (currentDate > expDate) {
+            document.body.innerHTML = `
+                <div style="position:fixed;top:0;left:0;width:100vw;height:100vh;background:linear-gradient(45deg,#ff0000,#660000);display:flex;align-items:center;justify-content:center;z-index:99999;">
+                    <div style="color:white;text-align:center;">
+                        <div style="font-size:48px;margin-bottom:20px;">⚠️</div>
+                        <div style="font-size:32px;">SCRIPT EXPIRADO</div>
+                        <div style="font-size:18px;margin-top:20px;opacity:0.8;">
+                            Vencimento: ${EXPIRATION_DATE}<br>
+                            Entre em contato com ${SCRIPT_AUTHOR}
+                        </div>
+                    </div>
+                </div>
+            `;
+            return false;
+        }
+        return true;
+    }
+
+    // Proteção anti-devtools
+    function initProtection() {
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'F12' ||
+                (e.ctrlKey && e.shiftKey && ['I','J','C'].includes(e.key)) ||
+                (e.ctrlKey && e.key === 'U')) {
+                e.preventDefault();
+                showBlockedMessage();
+                return false;
+            }
+        });
+
+        let devtools = {open: false};
+        const threshold = 160;
+        setInterval(() => {
+            if (window.outerHeight - window.innerHeight > threshold ||
+                window.outerWidth - window.innerWidth > threshold) {
+                if (!devtools.open) {
+                    devtools.open = true;
+                    showBlockedMessage();
+                }
+            }
+        }, 1000);
+
+        document.addEventListener('contextmenu', e => {
+            e.preventDefault();
+            showBlockedMessage();
+        });
+        document.addEventListener('selectstart', e => e.preventDefault());
+    }
+
+    function showBlockedMessage() {
+        if (document.getElementById('blockLawMsg')) return;
+        const blocked = document.createElement('div');
+        blocked.id = 'blockLawMsg';
+        blocked.innerHTML = `
+            <div style="position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.95);display:flex;align-items:center;justify-content:center;z-index:99998;">
+                <div style="color:#ff0000;text-align:center;font-size:32px;font-family:Arial,sans-serif;">
+                    <div style="font-size:64px;margin-bottom:20px;">🚫</div>
+                    <div>ACESSO BLOQUEADO</div>
+                    <div style="font-size:18px;margin-top:20px;">Ferramentas de desenvolvedor detectadas!</div>
+                </div>
+            </div>
+            <style>
+                @keyframes blockPulse {0%,100%{opacity:1;}50%{opacity:0.7;}}
+            </style>
+        `;
+        document.body.appendChild(blocked);
+    }
+
+    // Interface de senha
+    function createPasswordInterface() {
+        const container = document.createElement('div');
+        container.id = "passwordContainerLaw";
+        container.style.cssText = `
+            position:fixed;top:0;left:0;width:100vw;height:100vh;
+            background:linear-gradient(45deg,#0f0f0f,#1a1a1a,#0f0f0f);
+            background-size:400% 400%;animation:gradientShiftLaw 6s ease infinite;
+            display:flex;justify-content:center;align-items:center;z-index:10000;font-family:'Segoe UI',Arial,sans-serif;
+        `;
+        container.innerHTML = `
+            <div style="background:rgba(0,0,0,0.9);backdrop-filter:blur(20px);border:2px solid rgba(255,102,0,0.3);border-radius:20px;padding:40px;box-shadow:0 0 50px rgba(255,102,0,0.2),inset 0 0 50px rgba(255,102,0,0.1);animation:panelGlowLaw 3s ease-in-out infinite alternate;min-width:400px;text-align:center;">
+                <div style="color:${THEME_COLOR};font-size:28px;font-weight:bold;margin-bottom:10px;text-shadow:0 0 20px ${THEME_COLOR};animation:titlePulseLaw 2s ease-in-out infinite;">🔐 ACESSO RESTRITO</div>
+                <div style="color:#aaa;font-size:14px;margin-bottom:20px;opacity:0.8;">Sistema Protegido - Digite uma das senhas válidas</div>
+                <div style="color:#666;font-size:12px;margin-bottom:30px;">Válido até: ${EXPIRATION_DATE} | v${SCRIPT_VERSION}</div>
+                <input type="password" id="passwordInputLaw" placeholder="Digite sua senha..." maxlength="30" style="width:100%;padding:15px;font-size:16px;background:rgba(255,255,255,0.1);border:2px solid rgba(255,102,0,0.3);border-radius:10px;color:#fff;outline:none;margin-bottom:20px;transition:all 0.3s ease;">
+                <button id="btnAcessarLaw" style="width:100%;padding:15px;font-size:16px;font-weight:bold;background:linear-gradient(45deg,${THEME_COLOR},#ff8833);border:none;border-radius:10px;color:#fff;cursor:pointer;transition:all 0.3s ease;text-transform:uppercase;letter-spacing:1px;">ACESSAR SISTEMA</button>
+                <div id="passwordErrorLaw" style="color:#ff4444;font-size:14px;margin-top:10px;opacity:0;transition:opacity 0.3s ease;">Senha incorreta! Tente novamente.</div>
+                <div style="color:#555;font-size:11px;margin-top:20px;">Desenvolvido por ${SCRIPT_AUTHOR}</div>
+            </div>
+            <style>
+                @keyframes gradientShiftLaw {0%,100%{background-position:0% 50%;}50%{background-position:100% 50%;}}
+                @keyframes panelGlowLaw {0%{box-shadow:0 0 30px rgba(255,102,0,0.2),inset 0 0 30px rgba(255,102,0,0.1);}100%{box-shadow:0 0 60px rgba(255,102,0,0.4),inset 0 0 60px rgba(255,102,0,0.2);}}
+                @keyframes titlePulseLaw {0%,100%{transform:scale(1);}50%{transform:scale(1.05);}}
+                #passwordInputLaw:focus {border-color:${THEME_COLOR} !important;box-shadow:0 0 20px rgba(255,102,0,0.5) !important;transform:scale(1.02) !important;}
+                #btnAcessarLaw:hover {transform:translateY(-2px) !important;box-shadow:0 10px 20px rgba(255,102,0,0.3) !important;}
+            </style>
+        `;
+        document.body.appendChild(container);
+
+        document.getElementById('btnAcessarLaw').onclick = checkPassword;
+        document.getElementById('passwordInputLaw').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') checkPassword();
+        });
+    }
+
+    // Checa senha
+    function checkPassword() {
+        const input = document.getElementById('passwordInputLaw');
+        const error = document.getElementById('passwordErrorLaw');
+        const inputValue = input.value.trim();
+        if (SYSTEM_PASSWORDS.includes(inputValue)) {
+            showCelebration();
+        } else {
+            error.style.opacity = '1';
+            error.style.animation = 'shakeLaw 0.5s ease-in-out';
+            input.style.borderColor = '#ff4444';
+            setTimeout(() => {
+                error.style.opacity = '0';
+                input.style.borderColor = 'rgba(255,102,0,0.3)';
+            }, 2000);
+        }
+        input.value = '';
+    }
+
+    // Comemoração
+    function showCelebration() {
+        document.getElementById('passwordContainerLaw').style.display = 'none';
+        const celebration = document.createElement('div');
+        celebration.id = "celebrationScreenLaw";
+        celebration.style.cssText = `
+            position:fixed;top:0;left:0;width:100vw;height:100vh;background:linear-gradient(45deg,#000428,#004e92);display:flex;align-items:center;justify-content:center;z-index:9999;overflow:hidden;
+        `;
+        celebration.innerHTML = `
+            <div style="text-align:center;z-index:2;">
+                <div style="font-size:48px;font-weight:bold;color:#fff;text-shadow:0 0 30px #fff;margin-bottom:20px;animation:celebrationPulseLaw 1.5s ease-in-out infinite;">🎉 PARABÉNS! 🎉</div>
+                <div style="font-size:24px;color:#ffaa00;text-shadow:0 0 20px #ffaa00;animation:subtitleGlowLaw 2s ease-in-out infinite;">O Script é Seu!</div>
+                <div style="font-size:16px;color:#ccc;margin-top:20px;opacity:0.8;">by ${SCRIPT_AUTHOR}</div>
+            </div>
+            <style>
+                @keyframes celebrationPulseLaw {0%,100%{transform:scale(1);}50%{transform:scale(1.1);}}
+                @keyframes subtitleGlowLaw {0%,100%{opacity:0.8;}50%{opacity:1;}}
+                @keyframes shakeLaw {0%,100%{transform:translateX(0);}25%{transform:translateX(-5px);}75%{transform:translateX(5px);}}
+            </style>
+        `;
+        document.body.appendChild(celebration);
+
+        for (let i = 0; i < 15; i++) setTimeout(() => createFirework(celebration), i * 200);
+        setTimeout(() => {
+            celebration.style.display = 'none';
+            showLawSplash();
+        }, 4000);
+    }
+
+    function createFirework(context) {
+        const firework = document.createElement('div');
+        const colors = ['#ff6600','#ffaa00','#ff0066','#00ff66','#0066ff','#aa00ff'];
+        const color = colors[Math.floor(Math.random()*colors.length)];
+        firework.style.cssText = `
+            position:absolute;width:4px;height:4px;border-radius:50%;background:${color};box-shadow:0 0 10px ${color};
+            left:${Math.random()*window.innerWidth}px;bottom:0px;animation:fireworkLaunchLaw 2s ease-out forwards;
+        `;
+        context.appendChild(firework);
+        setTimeout(() => {
+            createExplosion(firework,color);
+            firework.remove();
+        }, 1400);
+    }
+
+    function createExplosion(firework, color) {
+        const rect = firework.getBoundingClientRect();
+        const colors = ['#ff6600','#ffaa00','#ff0066','#00ff66','#0066ff','#aa00ff'];
+        for (let i = 0; i < 20; i++) {
+            const particle = document.createElement('div');
+            particle.style.cssText = `
+                position:absolute;width:3px;height:3px;border-radius:50%;background:${colors[Math.floor(Math.random()*colors.length)]};left:${rect.left}px;top:${rect.top}px;
+            `;
+            document.body.appendChild(particle);
+            const angle = (Math.PI*2*i)/20;
+            const velocity = 2 + Math.random()*3;
+            let x = rect.left, y = rect.top, opacity = 1;
+            const animate = () => {
+                x += Math.cos(angle)*velocity;
+                y += Math.sin(angle)*velocity;
+                opacity -= 0.02;
+                particle.style.left = x+'px';
+                particle.style.top = y+'px';
+                particle.style.opacity = opacity;
+                if (opacity > 0) requestAnimationFrame(animate);
+                else particle.remove();
+            };
+            requestAnimationFrame(animate);
+        }
+    }
+
+    // Splash LAW
+    function showLawSplash() {
+        const splash = document.createElement('div');
+        splash.id = "lawSplashLaw";
+        splash.style.cssText = `
+            position:fixed;top:0;left:0;width:100vw;height:100vh;background:linear-gradient(135deg,#001122 0%,#003366 25%,#001122 50%,#000000 100%);background-size:400% 400%;animation:lawGradientLaw 8s ease infinite;display:flex;justify-content:center;align-items:center;z-index:9998;color:#00aaff;font-family:Arial,sans-serif;font-size:64px;font-weight:bold;letter-spacing:4px;text-shadow:0 0 10px #00aaff,0 0 20px #00aaff,0 0 40px #00aaff,0 0 80px #00aaff;overflow:hidden;
+        `;
+        splash.innerHTML = `
+            <div>
+                <div id="lawTextLaw" style="animation:lawTextAnimationLaw 3s ease-in-out;"></div>
+                <div style="position:absolute;bottom:50px;left:50%;transform:translateX(-50%);width:300px;height:4px;background:rgba(0,170,255,0.2);border-radius:2px;overflow:hidden;">
+                    <div style="height:100%;background:linear-gradient(90deg,#00aaff,#0088cc);border-radius:2px;animation:loadingProgressLaw 4s ease-in-out forwards;box-shadow:0 0 10px #00aaff;"></div>
+                </div>
+            </div>
+            <style>
+                @keyframes fireworkLaunchLaw {0%{transform:translateY(100vh) scale(0);opacity:1;}70%{transform:translateY(-50vh) scale(1);opacity:1;}100%{transform:translateY(-60vh) scale(0);opacity:0;}}
+                @keyframes lawGradientLaw {0%,100%{background-position:0% 50%;}50%{background-position:100% 50%;}}
+                @keyframes lawTextAnimationLaw {0%{transform:scale(0) rotate(-180deg);opacity:0;}50%{transform:scale(1.2) rotate(0deg);opacity:1;}100%{transform:scale(1) rotate(0deg);opacity:1;}}
+                @keyframes loadingProgressLaw {0%{width:0%;}100%{width:100%;}}
+            </style>
+        `;
+        document.body.appendChild(splash);
+
+        for (let i = 0; i < 20; i++) setTimeout(() => createFloatingParticleLaw(), i * 100);
+
+        // Texto animado
+        const textElement = document.getElementById('lawTextLaw');
+        let index = 0;
+        const typeText = () => {
+            if (index < SPLASH_TEXT.length) {
+                textElement.textContent += SPLASH_TEXT[index];
+                index++;
+                setTimeout(typeText, 150);
+            }
+        };
+        setTimeout(typeText, 1000);
+
+        setTimeout(() => {
+            splash.style.opacity = '0';
+            setTimeout(() => {
+                splash.remove();
+                initKhanScript();
+            }, 1000);
+        }, 6000);
+    }
+
+    function createFloatingParticleLaw() {
+        const particle = document.createElement('div');
+        particle.style.cssText = `
+            position:absolute;width:2px;height:2px;background:#00aaff;border-radius:50%;left:${Math.random()*window.innerWidth}px;animation:floatLaw 6s linear infinite;opacity:0.6;
+        `;
+        document.getElementById('lawSplashLaw').appendChild(particle);
+        setTimeout(() => particle.remove(), 6000);
+    }
+
+    // Script principal do KhanAcademy - MODIFIQUE APENAS AQUI SE QUISER
+    function initKhanScript() {
+        console.clear();
+        const noop = () => {};
+        console.warn = console.error = window.debug = noop;
+
+        class EventEmitter {
+            constructor() { this.events = {}; }
+            on(t, e) { (Array.isArray(t) ? t : [t]).forEach(t => { (this.events[t] = this.events[t] || []).push(e); }); }
+            off(t, e) { (Array.isArray(t) ? t : [t]).forEach(t => { if(this.events[t]) this.events[t] = this.events[t].filter(h => h !== e); }); }
+            emit(t, ...e) { this.events[t]?.forEach(h => h(...e)); }
+        }
+        const plppdo = new EventEmitter();
+        const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+        function sendToast(text, duration = 3000) {
+            const toast = document.createElement('div');
+            toast.textContent = text;
+            toast.style.cssText = `position:fixed;bottom:20px;right:20px;background:#000;color:#fff;padding:12px 20px;border-radius:8px;border:1px solid ${THEME_COLOR};z-index:1000;font-size:14px;font-weight:bold;animation:toastSlideLaw 0.3s ease;box-shadow:0 4px 12px rgba(0,0,0,0.3);`;
+            document.body.appendChild(toast);
+            const style = document.createElement('style');
+            style.textContent = `@keyframes toastSlideLaw {from{transform:translateX(100%);opacity:0;}to{transform:translateX(0);opacity:1;}}@keyframes floatLaw {0%{transform:translateY(100vh) translateX(0px);opacity:0;}10%{opacity:0.6;}90%{opacity:0.6;}100%{transform:translateY(-100px) translateX(100px);opacity:0;}}`;
+            document.head.appendChild(style);
+            setTimeout(() => {
+                toast.style.animation = 'toastSlideLaw 0.3s ease reverse';
+                setTimeout(() => toast.remove(), 300);
+            }, duration);
+        }
+
+        function setupMain() {
+            const originalFetch = window.fetch;
+            if (originalFetch) {
+                window.fetch = async function(input, init) {
+                    let body;
+                    if (input instanceof Request) {
+                        try { body = await input.clone().text(); } catch(e) {}
+                    } else if (init?.body) {
+                        body = init.body;
+                    }
+                    if (body?.includes('"operationName":"updateUserVideoProgress"')) {
+                        try {
+                            let bodyObj = JSON.parse(body);
+                            if (bodyObj.variables?.input?.durationSeconds) {
+                                const duration = bodyObj.variables.input.durationSeconds;
+                                bodyObj.variables.input.secondsWatched = duration;
+                                bodyObj.variables.input.lastSecondWatched = duration;
+                                body = JSON.stringify(bodyObj);
+                                if (input instanceof Request) input = new Request(input, { body });
+                                else init.body = body;
+                                sendToast("🔓 Vídeo completado automaticamente!", 2000);
+                            }
+                        } catch (e) {}
+                    }
+                    const response = await originalFetch.apply(this, arguments);
+                    try {
+                        const clonedResponse = response.clone();
+                        const responseText = await clonedResponse.text();
+                        let responseObj = JSON.parse(responseText);
+                        if (responseObj?.data?.assessmentItem?.item?.itemData) {
+                            let itemData = JSON.parse(responseObj.data.assessmentItem.item.itemData);
+                            if (itemData.question?.content?.[0]) {
+                                itemData.answerArea = { calculator:false, chi2Table:false, periodicTable:false, tTable:false, zTable:false };
+                                itemData.question.content = "[[☃ radio 1]]";
+                                itemData.question.widgets = {
+                                    "radio 1": { type:"radio", options: { choices: [{ content: `✅ Resposta Correta (${SCRIPT_AUTHOR})`, correct: true }] } }
+                                };
+                                responseObj.data.assessmentItem.item.itemData = JSON.stringify(itemData);
+                                return new Response(JSON.stringify(responseObj), {
+                                    status: response.status, statusText: response.statusText, headers: response.headers
+                                });
+                            }
+                        }
+                    } catch (e) {}
+                    return response;
+                };
+            }
+
+            // Auto-clicker para exercícios
+            (async () => {
+                const selectors = [
+                    '[data-testid="choice-icon__library-choice-icon"]',
+                    '[data-testid="exercise-check-answer"]',
+                    '[data-testid="exercise-next-question"]',
+                    '._1udzurba', '._awve9b'
+                ];
+                window.khanwareDominates = true;
+                while (window.khanwareDominates) {
+                    for (const selector of selectors) {
+                        const element = document.querySelector(selector);
+                        if (element) {
+                            element.click();
+                            if (element.innerText?.includes("Mostrar resumo")) {
+                                sendToast("🎉 Exercício concluído!", 2000);
+                            }
+                        }
+                    }
+                    await delay(800);
+                }
+            })();
+        }
+
+        if (!/^https?:\/\/([a-z0-9-]+\.)?khanacademy\.org/.test(window.location.href)) {
+            sendToast(`🍀 ${SCRIPT_AUTHOR} KhanResolver v${SCRIPT_VERSION} carregado! Acesse pt.khanacademy.org`, 5000);
+        } else {
+            setupMain();
+            sendToast(`🚀 KhanResolver v${SCRIPT_VERSION} ativo!`, 3000);
+        }
+        console.clear();
+        console.log(`%c🔥 KhanResolver v${SCRIPT_VERSION} by ${SCRIPT_AUTHOR} 🔥`, 'color: #ff6600; font-size: 16px; font-weight: bold;');
+    }
+
+    // Inicialização
+    function init() {
+        if (!checkExpiration()) return;
+        initProtection();
+        createPasswordInterface();
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
