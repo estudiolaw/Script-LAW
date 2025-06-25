@@ -20,7 +20,7 @@
     ];
 
     // Data de expiração (YYYY-MM-DD)
-    const EXPIRATION_DATE = "2024-12-31";
+    const EXPIRATION_DATE = "2025-12-31";
     const SCRIPT_AUTHOR = "Wesley1w2e";
     const SCRIPT_VERSION = "3.0";
 
