@@ -1,11 +1,9 @@
 // ==UserScript==
-// @name         KhanResolver LAW - Sistema Protegido Completo
-// @namespace    https://github.com/wesley1w2e/
+// @name         Khan Academy LAW - Sistema Protegido Completo
+// @namespace    https://github.com/estudiolaw
 // @version      3.0
 // @description  Sistema de senha animado, vencimento, proteção, comemoração e splash para scripts na Khan Academy
-// @author       Wesley1w2e
-// @match        *://*.khanacademy.org/*
-// @grant        none
+// @author       Estúdio LAW
 // ==/UserScript==
 
 (function() {
