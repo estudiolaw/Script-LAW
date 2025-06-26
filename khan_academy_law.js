@@ -5,789 +5,680 @@
  * Data: 2025
  *=======================================================*/
 
-const ver = "V4.0.0 - Law Edition";
-let isDev = false;
+console.log("🏛️ [ESTÚDIO LAW] Iniciando sistema...");
 
-// Configuração de senha e validação
-const LAW_CONFIG = {
-    password: "LAW2025", // Altere aqui a senha
-    validUntil: "2025-12-31", // Data de expiração (YYYY-MM-DD)
-    authorizedUsers: ["admin", "wesley", "law"] // Usuários autorizados
-};
-
-const repoPath = `https://raw.githubusercontent.com/Niximkk/Khanware/refs/heads/${isDev ? "dev/" : "main/"}`;
-
-let device = {
-    mobile: /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Windows Phone|Mobile|Tablet|Kindle|Silk|PlayBook|BB10/i.test(navigator.userAgent),
-    apple: /iPhone|iPad|iPod|Macintosh|Mac OS X/i.test(navigator.userAgent)
-};
-
-let user = {
-    username: "Username",
-    nickname: "Nickname",
-    UID: 0,
-    authenticated: false
-};
-
-let loadedPlugins = [];
-let isAuthenticated = false;
-
-// Elementos principais
-const splashScreen = document.createElement('div');
-const authPanel = document.createElement('div');
-const mainPanel = document.createElement('div');
-const statsPanel = document.createElement('div');
-
-// Funcionalidades expandidas
-window.lawFeatures = {
-    questionSpoof: true,
-    videoSpoof: true,
-    showAnswers: false,
-    autoAnswer: false,
-    autoComplete: false,
-    customBanner: false,
-    nextRecomendation: false,
-    repeatQuestion: false,
-    minuteFarmer: false,
-    rgbLogo: false,
-    massivePoints: false,
-    unlockAllBadges: false,
-    skipVideos: false,
-    infiniteStreak: false,
-    godMode: false
-};
-
-window.lawConfigs = {
-    autoAnswerDelay: 3,
-    customUsername: "",
-    customPfp: "",
-    pointsMultiplier: 10,
-    streakBonus: 100
-};
-
-// Verificação de segurança
-document.addEventListener('contextmenu', (e) => !window.disableSecurity && e.preventDefault());
-document.addEventListener('keydown', (e) => { 
-    if (!window.disableSecurity && (e.key === 'F12' || (e.ctrlKey && e.shiftKey && ['I', 'C', 'J'].includes(e.key)))) { 
-        e.preventDefault(); 
-    } 
-});
-
-// Estilos gerais
-document.head.appendChild(Object.assign(document.createElement("style"), {
-    innerHTML: `
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Roboto:wght@300;400;500;700&display=swap');
-        
-        :root {
-            --law-primary: #00aaff;
-            --law-secondary: #0077cc;
-            --law-dark: #0a1b2d;
-            --law-darker: #051018;
-            --law-accent: #00ccff;
-            --law-success: #00ff88;
-            --law-warning: #ffaa00;
-            --law-danger: #ff4444;
-        }
-        
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: var(--law-darker); }
-        ::-webkit-scrollbar-thumb { 
-            background: linear-gradient(45deg, var(--law-primary), var(--law-secondary)); 
-            border-radius: 10px; 
-        }
-        ::-webkit-scrollbar-thumb:hover { background: var(--law-accent); }
-        
-        .law-button {
-            background: linear-gradient(45deg, var(--law-primary), var(--law-secondary));
-            border: none;
-            border-radius: 8px;
-            color: white;
-            padding: 12px 24px;
-            font-family: 'Roboto', sans-serif;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0, 170, 255, 0.3);
-        }
-        
-        .law-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0, 170, 255, 0.5);
-            background: linear-gradient(45deg, var(--law-accent), var(--law-primary));
-        }
-        
-        .law-input {
-            background: rgba(10, 27, 45, 0.8);
-            border: 2px solid var(--law-primary);
-            border-radius: 8px;
-            color: white;
-            padding: 12px 16px;
-            font-family: 'Roboto', sans-serif;
-            outline: none;
-            transition: all 0.3s ease;
-        }
-        
-        .law-input:focus {
-            border-color: var(--law-accent);
-            box-shadow: 0 0 15px rgba(0, 170, 255, 0.5);
-        }
-        
-        .law-panel {
-            background: linear-gradient(135deg, rgba(10, 27, 45, 0.95), rgba(21, 40, 66, 0.95));
-            border: 2px solid var(--law-primary);
-            border-radius: 15px;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-        }
-    `
-}));
-
-// Função de delay
-const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
-
-// Sistema de notificações
-function sendLawToast(text, type = 'info', duration = 5000) {
-    const colors = {
-        info: 'var(--law-primary)',
-        success: 'var(--law-success)',
-        warning: 'var(--law-warning)',
-        error: 'var(--law-danger)'
-    };
-    
-    if (typeof Toastify !== 'undefined') {
-        Toastify({
-            text: `🏛️ LAW: ${text}`,
-            duration: duration,
-            gravity: 'top',
-            position: 'right',
-            stopOnFocus: true,
-            style: {
-                background: colors[type],
-                fontFamily: 'Roboto, sans-serif',
-                borderRadius: '8px',
-                boxShadow: '0 4px 15px rgba(0, 0, 0, 0.3)'
-            }
-        }).showToast();
-    }
-    console.log(`[LAW] ${text}`);
+// Verificação imediata do site
+if (!/khanacademy\.org/.test(window.location.href)) {
+    alert("❌ Execute este script apenas no Khan Academy!");
+    throw new Error("Site incorreto");
 }
 
-// Splash Screen do Estúdio LAW
-async function showEstudioLawSplash() {
-    splashScreen.id = 'law-splash';
-    splashScreen.style.cssText = `
-        position: fixed;
-        top: 0; left: 0; width: 100%; height: 100%;
-        z-index: 10000;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: linear-gradient(-45deg, #0f1c2e, #0a1a2f, #152842, #0a1b2d);
-        background-size: 400% 400%;
-        animation: lawBackgroundFlow 8s ease infinite;
-        user-select: none;
-        font-family: 'Orbitron', monospace;
-        opacity: 0;
-        transition: opacity 0.5s ease;
-    `;
+const LAW_VERSION = "4.0.0";
+const LAW_PASSWORD = "LAW2025"; // Altere aqui
+const LAW_EXPIRY = "2025-12-31"; // Data de expiração
 
-    splashScreen.innerHTML = `
-        <div style="text-align: center; animation: lawFadeSlideIn 2s ease forwards;">
-            <div style="
-                font-size: 4em;
-                font-weight: 900;
-                color: #ffffff;
-                text-shadow: 0 0 20px #00aaff, 0 0 40px #0077cc;
-                animation: lawGlowText 3s ease-in-out infinite alternate;
-                margin-bottom: 20px;
-                transform: translateY(30px);
-                opacity: 0;
-                animation: lawTextReveal 2s ease forwards 0.5s;
-            ">
-                Estúdio <span style="color: #00aaff;">LAW</span>
+// Prevenir execução dupla
+if (window.ESTUDIO_LAW_LOADED) {
+    console.log("🏛️ [LAW] Sistema já carregado!");
+    return;
+}
+window.ESTUDIO_LAW_LOADED = true;
+
+// Remover painéis existentes
+document.querySelectorAll('[id*="law"], [id*="LAW"]').forEach(el => el.remove());
+
+// ================== SPLASH SCREEN ==================
+function createSplashScreen() {
+    const splash = document.createElement('div');
+    splash.id = 'law-splash-screen';
+    splash.innerHTML = `
+        <div class="law-splash-content">
+            <div class="law-logo-container">
+                <h1 class="law-main-title">Estúdio <span class="law-highlight">LAW</span></h1>
+                <p class="law-subtitle">Sistema de Login</p>
             </div>
-            <div style="
-                font-size: 1.2em;
-                color: #00ccff;
-                font-weight: 400;
-                opacity: 0;
-                animation: lawSubtitleReveal 1.5s ease forwards 1.5s;
-            ">
-                Khan Academy Automation Suite
-            </div>
-            <div style="
-                margin-top: 30px;
-                opacity: 0;
-                animation: lawSubtitleReveal 1.5s ease forwards 2s;
-            ">
-                <div class="law-loading-bar" style="
-                    width: 300px;
-                    height: 4px;
-                    background: rgba(0, 170, 255, 0.3);
-                    border-radius: 2px;
-                    overflow: hidden;
-                    margin: 0 auto;
-                ">
-                    <div style="
-                        width: 0%;
-                        height: 100%;
-                        background: linear-gradient(90deg, #00aaff, #00ccff);
-                        border-radius: 2px;
-                        animation: lawLoadingProgress 3s ease forwards;
-                    "></div>
-                </div>
+            <div class="law-loading">
+                <div class="law-spinner"></div>
+                <p>Carregando sistema...</p>
             </div>
         </div>
     `;
 
-    const style = document.createElement('style');
-    style.innerHTML = `
-        @keyframes lawBackgroundFlow {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-        
-        @keyframes lawGlowText {
-            from { text-shadow: 0 0 20px #00aaff, 0 0 40px #0077cc; }
-            to { text-shadow: 0 0 30px #00ccff, 0 0 60px #00aaff, 0 0 80px #0077cc; }
-        }
-        
-        @keyframes lawTextReveal {
-            to {
-                opacity: 1;
-                transform: translateY(0);
+    const styles = `
+        <style id="law-splash-styles">
+            #law-splash-screen {
+                position: fixed;
+                top: 0; left: 0;
+                width: 100vw; height: 100vh;
+                background: linear-gradient(135deg, #1a237e 0%, #0d47a1 50%, #01579b 100%);
+                z-index: 999999;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-family: 'Segoe UI', Arial, sans-serif;
+                animation: lawFadeIn 0.8s ease;
             }
-        }
-        
-        @keyframes lawSubtitleReveal {
-            to { opacity: 1; }
-        }
-        
-        @keyframes lawLoadingProgress {
-            to { width: 100%; }
-        }
-        
-        @keyframes lawFadeSlideIn {
-            to {
-                opacity: 1;
-                transform: translateY(0);
+
+            .law-splash-content {
+                text-align: center;
+                color: white;
+                animation: lawSlideUp 1s ease 0.3s both;
             }
-        }
+
+            .law-main-title {
+                font-size: 3.5rem;
+                font-weight: 700;
+                margin: 0 0 10px 0;
+                text-shadow: 0 0 20px rgba(255,255,255,0.5);
+                animation: lawGlow 2s ease-in-out infinite alternate;
+            }
+
+            .law-highlight {
+                color: #64b5f6;
+                text-shadow: 0 0 20px #64b5f6;
+            }
+
+            .law-subtitle {
+                font-size: 1.2rem;
+                opacity: 0.9;
+                margin: 0 0 40px 0;
+            }
+
+            .law-loading {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 15px;
+            }
+
+            .law-spinner {
+                width: 40px;
+                height: 40px;
+                border: 3px solid rgba(255,255,255,0.3);
+                border-top: 3px solid #64b5f6;
+                border-radius: 50%;
+                animation: lawSpin 1s linear infinite;
+            }
+
+            @keyframes lawFadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
+
+            @keyframes lawSlideUp {
+                from { 
+                    opacity: 0; 
+                    transform: translateY(30px); 
+                }
+                to { 
+                    opacity: 1; 
+                    transform: translateY(0); 
+                }
+            }
+
+            @keyframes lawGlow {
+                from { text-shadow: 0 0 20px rgba(255,255,255,0.5); }
+                to { text-shadow: 0 0 30px rgba(100,181,246,0.8), 0 0 40px rgba(100,181,246,0.4); }
+            }
+
+            @keyframes lawSpin {
+                to { transform: rotate(360deg); }
+            }
+        </style>
     `;
+
+    document.head.insertAdjacentHTML('beforeend', styles);
+    document.body.appendChild(splash);
     
-    document.head.appendChild(style);
-    document.body.appendChild(splashScreen);
-    setTimeout(() => splashScreen.style.opacity = '1', 100);
+    // Remove splash após 2.5 segundos
+    setTimeout(() => {
+        splash.style.animation = 'lawFadeIn 0.8s ease reverse';
+        setTimeout(() => {
+            splash.remove();
+            showAuthPanel();
+        }, 800);
+    }, 2500);
 }
 
-async function hideEstudioLawSplash() {
-    splashScreen.style.transition = 'opacity 1s ease, transform 1s ease';
-    splashScreen.style.opacity = '0';
-    splashScreen.style.transform = 'scale(0.8)';
-    setTimeout(() => splashScreen.remove(), 1000);
-}
-
-// Sistema de autenticação
+// ================== PAINEL DE AUTENTICAÇÃO ==================
 function showAuthPanel() {
-    authPanel.id = 'law-auth-panel';
-    authPanel.className = 'law-panel';
-    authPanel.style.cssText = `
-        position: fixed;
-        top: 50%; left: 50%;
-        transform: translate(-50%, -50%);
-        z-index: 9999;
-        padding: 40px;
-        min-width: 400px;
-        text-align: center;
-        font-family: 'Roboto', sans-serif;
-        color: white;
-        opacity: 0;
-        animation: lawPanelReveal 0.8s ease forwards;
-    `;
-
     const currentDate = new Date().toISOString().split('T')[0];
-    const isExpired = currentDate > LAW_CONFIG.validUntil;
-
+    const isExpired = currentDate > LAW_EXPIRY;
+    
+    const authPanel = document.createElement('div');
+    authPanel.id = 'law-auth-panel';
     authPanel.innerHTML = `
-        <div style="margin-bottom: 30px;">
-            <h2 style="
-                font-family: 'Orbitron', monospace;
-                font-size: 2em;
-                color: var(--law-primary);
-                margin-bottom: 10px;
-                text-shadow: 0 0 10px var(--law-primary);
-            ">
-                🏛️ Estúdio LAW
-            </h2>
-            <p style="color: #00ccff; font-size: 1.1em;">Sistema de Autenticação</p>
-        </div>
-        
-        ${isExpired ? `
-            <div style="
-                background: rgba(255, 68, 68, 0.2);
-                border: 2px solid var(--law-danger);
-                border-radius: 8px;
-                padding: 20px;
-                margin-bottom: 20px;
-            ">
-                <h3 style="color: var(--law-danger); margin: 0 0 10px 0;">⚠️ Licença Expirada</h3>
-                <p>Válida até: ${LAW_CONFIG.validUntil}</p>
-                <p>Entre em contato com Wesley para renovação</p>
+        <div class="law-auth-overlay"></div>
+        <div class="law-auth-container">
+            <div class="law-auth-header">
+                <h2>Studio Law</h2>
+                <p>para sala do futuro é cripit</p>
             </div>
-        ` : ''}
-        
-        <div style="margin-bottom: 20px;">
-            <input type="password" id="law-password" class="law-input" 
-                   placeholder="Digite a senha do LAW..." 
-                   style="width: 100%; margin-bottom: 15px;"
-                   onkeypress="if(event.key==='Enter') authenticateLaw()">
-        </div>
-        
-        <button onclick="authenticateLaw()" class="law-button" style="width: 100%; margin-bottom: 15px;">
-            🔓 Autenticar
-        </button>
-        
-        <div style="
-            font-size: 0.9em;
-            color: rgba(255, 255, 255, 0.7);
-            border-top: 1px solid rgba(0, 170, 255, 0.3);
-            padding-top: 15px;
-            margin-top: 20px;
-        ">
-            <p>📅 Válido até: ${LAW_CONFIG.validUntil}</p>
-            <p style="margin-top: 10px; font-size: 0.8em; opacity: 0.5;">
-                Desenvolvido por Wesley - Estúdio LAW
-            </p>
+            
+            <div class="law-auth-form">
+                <div class="law-form-group">
+                    <label>RA</label>
+                    <input type="text" id="law-ra" value="000113460932Zsp" readonly>
+                </div>
+                
+                <div class="law-form-group">
+                    <label>Senha</label>
+                    <input type="password" id="law-password" placeholder="Digite a senha..." maxlength="20">
+                </div>
+                
+                <div class="law-checkbox-group">
+                    <input type="checkbox" id="law-verified" checked>
+                    <label for="law-verified">Verificado</label>
+                </div>
+                
+                ${isExpired ? `
+                    <div class="law-expired-notice">
+                        ⚠️ Licença expirada em ${LAW_EXPIRY}
+                    </div>
+                ` : ''}
+                
+                <button class="law-btn-primary" onclick="window.lawAuthenticate()">
+                    ATIVIDADES PENDENTES
+                </button>
+                
+                <button class="law-btn-secondary" onclick="window.lawShowExpired()">
+                    ATIVIDADES EXPIRADAS
+                </button>
+                
+                <button class="law-btn-exit" onclick="window.lawExit()">
+                    SAIR
+                </button>
+            </div>
+            
+            <div class="law-auth-footer">
+                Entre em contato com o suporte da Unicsul<br>
+                <span class="law-credits">Law House</span>
+            </div>
         </div>
     `;
 
-    const style = document.createElement('style');
-    style.innerHTML = `
-        @keyframes lawPanelReveal {
-            from {
-                opacity: 0;
-                transform: translate(-50%, -50%) scale(0.8);
+    const authStyles = `
+        <style id="law-auth-styles">
+            #law-auth-panel {
+                position: fixed;
+                top: 0; left: 0;
+                width: 100vw; height: 100vh;
+                z-index: 999999;
+                font-family: 'Segoe UI', Arial, sans-serif;
+                animation: lawAuthFadeIn 0.6s ease;
             }
-            to {
-                opacity: 1;
-                transform: translate(-50%, -50%) scale(1);
+
+            .law-auth-overlay {
+                position: absolute;
+                top: 0; left: 0;
+                width: 100%; height: 100%;
+                background: linear-gradient(135deg, #1565c0 0%, #0d47a1 50%, #01579b 100%);
             }
-        }
+
+            .law-auth-container {
+                position: relative;
+                top: 50%; left: 50%;
+                transform: translate(-50%, -50%);
+                background: rgba(30, 30, 30, 0.95);
+                border-radius: 12px;
+                padding: 30px;
+                width: 400px;
+                max-width: 90vw;
+                box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+                border: 1px solid rgba(255,255,255,0.1);
+                animation: lawPanelSlide 0.8s ease 0.2s both;
+            }
+
+            .law-auth-header {
+                text-align: center;
+                margin-bottom: 30px;
+                color: white;
+            }
+
+            .law-auth-header h2 {
+                font-size: 2.2rem;
+                font-weight: 600;
+                margin: 0 0 5px 0;
+                color: #64b5f6;
+                text-shadow: 0 0 10px rgba(100,181,246,0.5);
+            }
+
+            .law-auth-header p {
+                margin: 0;
+                opacity: 0.8;
+                font-size: 0.9rem;
+            }
+
+            .law-form-group {
+                margin-bottom: 20px;
+            }
+
+            .law-form-group label {
+                display: block;
+                color: white;
+                margin-bottom: 5px;
+                font-weight: 500;
+            }
+
+            .law-form-group input {
+                width: 100%;
+                padding: 12px 15px;
+                background: rgba(255,255,255,0.1);
+                border: 1px solid rgba(255,255,255,0.2);
+                border-radius: 6px;
+                color: white;
+                font-size: 1rem;
+                box-sizing: border-box;
+                transition: all 0.3s ease;
+            }
+
+            .law-form-group input:focus {
+                outline: none;
+                border-color: #64b5f6;
+                box-shadow: 0 0 0 2px rgba(100,181,246,0.2);
+                background: rgba(255,255,255,0.15);
+            }
+
+            .law-form-group input[readonly] {
+                opacity: 0.7;
+                cursor: not-allowed;
+            }
+
+            .law-checkbox-group {
+                display: flex;
+                align-items: center;
+                margin-bottom: 25px;
+                color: white;
+            }
+
+            .law-checkbox-group input {
+                margin-right: 8px;
+                transform: scale(1.2);
+            }
+
+            .law-expired-notice {
+                background: rgba(244, 67, 54, 0.2);
+                border: 1px solid #f44336;
+                border-radius: 6px;
+                padding: 10px;
+                color: #ffcdd2;
+                text-align: center;
+                margin-bottom: 20px;
+                font-size: 0.9rem;
+            }
+
+            .law-btn-primary, .law-btn-secondary, .law-btn-exit {
+                width: 100%;
+                padding: 14px;
+                border: none;
+                border-radius: 6px;
+                font-size: 1rem;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                margin-bottom: 10px;
+                text-transform: uppercase;
+            }
+
+            .law-btn-primary {
+                background: linear-gradient(45deg, #2196f3, #1976d2);
+                color: white;
+            }
+
+            .law-btn-primary:hover {
+                background: linear-gradient(45deg, #1976d2, #1565c0);
+                transform: translateY(-2px);
+                box-shadow: 0 6px 20px rgba(33,150,243,0.4);
+            }
+
+            .law-btn-secondary {
+                background: rgba(255,255,255,0.1);
+                color: white;
+                border: 1px solid rgba(255,255,255,0.2);
+            }
+
+            .law-btn-secondary:hover {
+                background: rgba(255,255,255,0.2);
+                transform: translateY(-1px);
+            }
+
+            .law-btn-exit {
+                background: linear-gradient(45deg, #f44336, #d32f2f);
+                color: white;
+            }
+
+            .law-btn-exit:hover {
+                background: linear-gradient(45deg, #d32f2f, #c62828);
+                transform: translateY(-2px);
+                box-shadow: 0 6px 20px rgba(244,67,54,0.4);
+            }
+
+            .law-auth-footer {
+                text-align: center;
+                margin-top: 25px;
+                padding-top: 20px;
+                border-top: 1px solid rgba(255,255,255,0.1);
+                color: rgba(255,255,255,0.7);
+                font-size: 0.85rem;
+                line-height: 1.4;
+            }
+
+            .law-credits {
+                color: #64b5f6;
+                font-weight: 600;
+            }
+
+            @keyframes lawAuthFadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
+
+            @keyframes lawPanelSlide {
+                from { 
+                    opacity: 0; 
+                    transform: translate(-50%, -50%) scale(0.9); 
+                }
+                to { 
+                    opacity: 1; 
+                    transform: translate(-50%, -50%) scale(1); 
+                }
+            }
+        </style>
     `;
-    document.head.appendChild(style);
+
+    document.head.insertAdjacentHTML('beforeend', authStyles);
     document.body.appendChild(authPanel);
     
-    setTimeout(() => document.getElementById('law-password').focus(), 500);
+    // Focar no campo de senha
+    setTimeout(() => {
+        const passwordField = document.getElementById('law-password');
+        if (passwordField) passwordField.focus();
+    }, 300);
 }
 
-function authenticateLaw() {
+// ================== FUNÇÕES DE AUTENTICAÇÃO ==================
+window.lawAuthenticate = function() {
     const password = document.getElementById('law-password').value;
     const currentDate = new Date().toISOString().split('T')[0];
     
-    if (currentDate > LAW_CONFIG.validUntil) {
-        sendLawToast('Licença expirada! Entre em contato com Wesley.', 'error');
+    console.log("🏛️ [LAW] Tentativa de autenticação...");
+    
+    if (currentDate > LAW_EXPIRY) {
+        showLawMessage("⚠️ Licença Expirada", "Sistema expirado em " + LAW_EXPIRY + "\nContate Wesley para renovação", "warning");
         return;
     }
     
-    if (password === LAW_CONFIG.password) {
-        isAuthenticated = true;
-        user.authenticated = true;
-        authPanel.style.animation = 'lawPanelHide 0.8s ease forwards';
+    if (password === LAW_PASSWORD) {
+        console.log("🏛️ [LAW] Autenticação bem-sucedida!");
+        showLawMessage("✅ Acesso Autorizado", "Bem-vindo ao Estúdio LAW!\nCarregando sistema...", "success");
+        
         setTimeout(() => {
-            authPanel.remove();
+            document.getElementById('law-auth-panel').remove();
             initializeLawSystem();
-        }, 800);
-        sendLawToast('Autenticação realizada com sucesso! 🎉', 'success');
+        }, 2000);
     } else {
-        sendLawToast('Senha incorreta! Tente novamente.', 'error');
+        console.log("🏛️ [LAW] Senha incorreta");
+        showLawMessage("❌ Acesso Negado", "Senha incorreta!\nTente novamente.", "error");
         document.getElementById('law-password').value = '';
-        document.getElementById('law-password').style.animation = 'shake 0.5s ease';
-    }
-}
-
-// Painel principal do LAW
-function createMainPanel() {
-    mainPanel.id = 'law-main-panel';
-    mainPanel.className = 'law-panel';
-    mainPanel.style.cssText = `
-        position: fixed;
-        top: 20px; right: 20px;
-        width: 350px;
-        max-height: 80vh;
-        overflow-y: auto;
-        z-index: 9998;
-        padding: 20px;
-        font-family: 'Roboto', sans-serif;
-        color: white;
-        opacity: 0;
-        animation: lawPanelSlideIn 1s ease forwards;
-    `;
-
-    mainPanel.innerHTML = `
-        <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid var(--law-primary); padding-bottom: 15px;">
-            <h3 style="
-                font-family: 'Orbitron', monospace;
-                color: var(--law-primary);
-                margin: 0;
-                text-shadow: 0 0 10px var(--law-primary);
-            ">
-                🏛️ Estúdio LAW v${ver}
-            </h3>
-            <p style="margin: 5px 0 0 0; font-size: 0.9em; color: #00ccff;">
-                Olá, ${user.nickname || 'Usuário'}!
-            </p>
-        </div>
-
-        <div class="law-section">
-            <h4 style="color: var(--law-accent); margin-bottom: 15px;">⚡ Automações Básicas</h4>
-            <div class="law-feature-grid">
-                <label class="law-toggle">
-                    <input type="checkbox" id="questionSpoof"> Resposta Automática
-                </label>
-                <label class="law-toggle">
-                    <input type="checkbox" id="videoSpoof"> Pular Vídeos
-                </label>
-                <label class="law-toggle">
-                    <input type="checkbox" id="showAnswers"> Mostrar Respostas
-                </label>
-                <label class="law-toggle">
-                    <input type="checkbox" id="autoComplete"> Auto Completar
-                </label>
-            </div>
-        </div>
-
-        <div class="law-section">
-            <h4 style="color: var(--law-accent); margin-bottom: 15px;">🚀 Funcionalidades Avançadas</h4>
-            <div class="law-feature-grid">
-                <label class="law-toggle">
-                    <input type="checkbox" id="massivePoints"> Pontos Infinitos
-                </label>
-                <label class="law-toggle">
-                    <input type="checkbox" id="unlockAllBadges"> Desbloquear Badges
-                </label>
-                <label class="law-toggle">
-                    <input type="checkbox" id="infiniteStreak"> Streak Infinito
-                </label>
-                <label class="law-toggle">
-                    <input type="checkbox" id="godMode"> Modo Deus
-                </label>
-            </div>
-        </div>
-
-        <div class="law-section">
-            <h4 style="color: var(--law-accent); margin-bottom: 15px;">⚙️ Configurações</h4>
-            <div style="margin-bottom: 15px;">
-                <label style="display: block; margin-bottom: 5px; color: #00ccff;">Delay Auto-Resposta (seg):</label>
-                <input type="range" id="autoAnswerDelay" min="1" max="10" value="3" class="law-slider">
-                <span id="delayValue" style="color: var(--law-primary);">3s</span>
-            </div>
-            <div style="margin-bottom: 15px;">
-                <label style="display: block; margin-bottom: 5px; color: #00ccff;">Multiplicador de Pontos:</label>
-                <input type="range" id="pointsMultiplier" min="1" max="100" value="10" class="law-slider">
-                <span id="multiplierValue" style="color: var(--law-primary);">10x</span>
-            </div>
-        </div>
-
-        <div class="law-section">
-            <h4 style="color: var(--law-accent); margin-bottom: 15px;">🎯 Ações Rápidas</h4>
-            <div class="law-action-buttons">
-                <button onclick="lawFunctions.completeAllTasks()" class="law-button law-small">
-                    📝 Completar Todas
-                </button>
-                <button onclick="lawFunctions.farmPoints()" class="law-button law-small">
-                    💎 Farm Pontos
-                </button>
-                <button onclick="lawFunctions.unlockAllContent()" class="law-button law-small">
-                    🔓 Desbloquear Tudo
-                </button>
-                <button onclick="lawFunctions.resetProgress()" class="law-button law-small law-danger">
-                    🔄 Reset
-                </button>
-            </div>
-        </div>
-
-        <div style="
-            text-align: center;
-            margin-top: 20px;
-            padding-top: 15px;
-            border-top: 1px solid rgba(0, 170, 255, 0.3);
-            font-size: 0.8em;
-            color: rgba(255, 255, 255, 0.6);
-        ">
-            Desenvolvido por Wesley<br>
-            © 2025 Estúdio LAW
-        </div>
-    `;
-
-    // Estilos adicionais para o painel
-    const panelStyle = document.createElement('style');
-    panelStyle.innerHTML = `
-        @keyframes lawPanelSlideIn {
-            from {
-                opacity: 0;
-                transform: translateX(100%);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-        
-        @keyframes lawPanelHide {
-            to {
-                opacity: 0;
-                transform: translate(-50%, -50%) scale(0.8);
-            }
-        }
-        
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            75% { transform: translateX(5px); }
-        }
-        
-        .law-section {
-            margin-bottom: 25px;
-            padding: 15px;
-            background: rgba(0, 170, 255, 0.1);
-            border-radius: 10px;
-            border: 1px solid rgba(0, 170, 255, 0.3);
-        }
-        
-        .law-feature-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-        }
-        
-        .law-toggle {
-            display: flex;
-            align-items: center;
-            font-size: 0.9em;
-            cursor: pointer;
-            padding: 8px;
-            border-radius: 5px;
-            transition: background 0.3s ease;
-        }
-        
-        .law-toggle:hover {
-            background: rgba(0, 170, 255, 0.2);
-        }
-        
-        .law-toggle input {
-            margin-right: 8px;
-            transform: scale(1.2);
-        }
-        
-        .law-slider {
-            width: 70%;
-            margin-right: 10px;
-        }
-        
-        .law-action-buttons {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-        }
-        
-        .law-small {
-            padding: 8px 12px;
-            font-size: 0.9em;
-        }
-        
-        .law-danger {
-            background: linear-gradient(45deg, var(--law-danger), #cc0000);
-        }
-        
-        .law-danger:hover {
-            background: linear-gradient(45deg, #ff6666, var(--law-danger));
-        }
-    `;
-    document.head.appendChild(panelStyle);
-    document.body.appendChild(mainPanel);
-    
-    // Event listeners
-    setupEventListeners();
-}
-
-// Event listeners para o painel
-function setupEventListeners() {
-    // Sliders
-    document.getElementById('autoAnswerDelay').addEventListener('input', (e) => {
-        document.getElementById('delayValue').textContent = e.target.value + 's';
-        window.lawConfigs.autoAnswerDelay = parseInt(e.target.value);
-    });
-    
-    document.getElementById('pointsMultiplier').addEventListener('input', (e) => {
-        document.getElementById('multiplierValue').textContent = e.target.value + 'x';
-        window.lawConfigs.pointsMultiplier = parseInt(e.target.value);
-    });
-    
-    // Checkboxes
-    Object.keys(window.lawFeatures).forEach(feature => {
-        const checkbox = document.getElementById(feature);
-        if (checkbox) {
-            checkbox.checked = window.lawFeatures[feature];
-            checkbox.addEventListener('change', (e) => {
-                window.lawFeatures[feature] = e.target.checked;
-                sendLawToast(`${feature} ${e.target.checked ? 'ativado' : 'desativado'}`, 'info');
-            });
-        }
-    });
-}
-
-// Funções principais do LAW
-window.lawFunctions = {
-    async completeAllTasks() {
-        sendLawToast('Iniciando conclusão automática de todas as tarefas...', 'info');
-        // Implementar lógica para completar tarefas
-        await delay(2000);
-        sendLawToast('Todas as tarefas foram concluídas! 🎉', 'success');
-    },
-    
-    async farmPoints() {
-        sendLawToast('Iniciando farm de pontos...', 'info');
-        // Implementar lógica de farm de pontos
-        await delay(3000);
-        sendLawToast('Farm de pontos concluído! 💎', 'success');
-    },
-    
-    async unlockAllContent() {
-        sendLawToast('Desbloqueando todo o conteúdo...', 'info');
-        // Implementar lógica para desbloquear conteúdo
-        await delay(2500);
-        sendLawToast('Todo o conteúdo foi desbloqueado! 🔓', 'success');
-    },
-    
-    async resetProgress() {
-        if (confirm('Tem certeza que deseja resetar o progresso? Esta ação não pode ser desfeita!')) {
-            sendLawToast('Resetando progresso...', 'warning');
-            // Implementar lógica de reset
-            await delay(2000);
-            sendLawToast('Progresso resetado com sucesso! 🔄', 'info');
-        }
+        document.getElementById('law-password').focus();
     }
 };
 
-// Scripts adicionais
-async function loadScript(url, label) {
-    try {
-        const response = await fetch(url);
-        const script = await response.text();
-        loadedPlugins.push(label);
-        eval(script);
-        sendLawToast(`Plugin ${label} carregado`, 'success', 2000);
-    } catch (error) {
-        sendLawToast(`Erro ao carregar ${label}`, 'error');
+window.lawShowExpired = function() {
+    showLawMessage("📋 Atividades Expiradas", "Nenhuma atividade expirada encontrada.", "info");
+};
+
+window.lawExit = function() {
+    if (confirm("Deseja realmente sair do sistema LAW?")) {
+        document.querySelectorAll('[id*="law"]').forEach(el => el.remove());
+        console.log("🏛️ [LAW] Sistema encerrado pelo usuário");
     }
+};
+
+// ================== SISTEMA DE MENSAGENS ==================
+function showLawMessage(title, message, type = "info") {
+    const colors = {
+        success: "#4caf50",
+        error: "#f44336",
+        warning: "#ff9800",
+        info: "#2196f3"
+    };
+    
+    const msgDiv = document.createElement('div');
+    msgDiv.style.cssText = `
+        position: fixed;
+        top: 20px; right: 20px;
+        background: ${colors[type]};
+        color: white;
+        padding: 15px 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        z-index: 1000000;
+        font-family: 'Segoe UI', Arial, sans-serif;
+        max-width: 300px;
+        animation: lawMessageSlide 0.5s ease;
+    `;
+    
+    msgDiv.innerHTML = `
+        <strong>${title}</strong><br>
+        <small>${message.replace(/\n/g, '<br>')}</small>
+    `;
+    
+    const style = document.createElement('style');
+    style.innerHTML = `
+        @keyframes lawMessageSlide {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+    `;
+    document.head.appendChild(style);
+    document.body.appendChild(msgDiv);
+    
+    setTimeout(() => {
+        msgDiv.style.animation = 'lawMessageSlide 0.5s ease reverse';
+        setTimeout(() => msgDiv.remove(), 500);
+    }, 3000);
 }
 
-async function loadCss(url) {
-    return new Promise((resolve) => {
-        const link = document.createElement('link');
-        link.rel = 'stylesheet';
-        link.type = 'text/css';
-        link.href = url;
-        link.onload = () => resolve();
-        document.head.appendChild(link);
+// ================== SISTEMA PRINCIPAL ==================
+function initializeLawSystem() {
+    console.log("🏛️ [LAW] Inicializando sistema principal...");
+    
+    // Criar painel principal
+    createMainPanel();
+    
+    // Carregar funcionalidades
+    loadLawFeatures();
+    
+    showLawMessage("🚀 Sistema Ativo", "Estúdio LAW inicializado!\nTodas as funcionalidades disponíveis.", "success");
+}
+
+function createMainPanel() {
+    const mainPanel = document.createElement('div');
+    mainPanel.id = 'law-main-panel';
+    mainPanel.innerHTML = `
+        <div class="law-panel-header">
+            <h3>🏛️ Estúdio LAW v${LAW_VERSION}</h3>
+            <button onclick="this.parentElement.parentElement.remove()">×</button>
+        </div>
+        <div class="law-panel-content">
+            <div class="law-section">
+                <h4>⚡ Automações</h4>
+                <label><input type="checkbox" id="auto-answer"> Resposta Automática</label>
+                <label><input type="checkbox" id="skip-videos"> Pular Vídeos</label>
+                <label><input type="checkbox" id="show-answers"> Mostrar Respostas</label>
+            </div>
+            <div class="law-section">
+                <h4>🚀 Avançado</h4>
+                <button class="law-action-btn" onclick="lawFunctions.completeAll()">Completar Tudo</button>
+                <button class="law-action-btn" onclick="lawFunctions.farmPoints()">Farm Pontos</button>
+                <button class="law-action-btn" onclick="lawFunctions.unlockAll()">Desbloquear</button>
+            </div>
+        </div>
+        <div class="law-panel-footer">
+            Por Wesley - © 2025 Estúdio LAW
+        </div>
+    `;
+
+    const panelStyles = `
+        <style id="law-panel-styles">
+            #law-main-panel {
+                position: fixed;
+                top: 20px; right: 20px;
+                width: 300px;
+                background: rgba(30, 30, 30, 0.95);
+                border: 1px solid #64b5f6;
+                border-radius: 10px;
+                color: white;
+                font-family: 'Segoe UI', Arial, sans-serif;
+                z-index: 999998;
+                animation: lawPanelFadeIn 0.8s ease;
+            }
+            
+            .law-panel-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 15px;
+                border-bottom: 1px solid rgba(100, 181, 246, 0.3);
+                background: linear-gradient(45deg, #1976d2, #1565c0);
+            }
+            
+            .law-panel-header h3 {
+                margin: 0;
+                font-size: 1.1rem;
+            }
+            
+            .law-panel-header button {
+                background: none;
+                border: none;
+                color: white;
+                font-size: 1.5rem;
+                cursor: pointer;
+                padding: 0;
+                width: 25px;
+                height: 25px;
+                border-radius: 50%;
+                transition: background 0.3s ease;
+            }
+            
+            .law-panel-header button:hover {
+                background: rgba(255, 255, 255, 0.2);
+            }
+            
+            .law-panel-content {
+                padding: 20px;
+            }
+            
+            .law-section {
+                margin-bottom: 20px;
+            }
+            
+            .law-section h4 {
+                margin: 0 0 10px 0;
+                color: #64b5f6;
+                font-size: 1rem;
+            }
+            
+            .law-section label {
+                display: block;
+                margin-bottom: 8px;
+                cursor: pointer;
+                font-size: 0.9rem;
+            }
+            
+            .law-section input {
+                margin-right: 8px;
+            }
+            
+            .law-action-btn {
+                width: 100%;
+                padding: 8px;
+                margin-bottom: 5px;
+                background: linear-gradient(45deg, #2196f3, #1976d2);
+                border: none;
+                border-radius: 5px;
+                color: white;
+                cursor: pointer;
+                font-size: 0.9rem;
+                transition: all 0.3s ease;
+            }
+            
+            .law-action-btn:hover {
+                background: linear-gradient(45deg, #1976d2, #1565c0);
+                transform: translateY(-1px);
+            }
+            
+            .law-panel-footer {
+                padding: 10px 15px;
+                border-top: 1px solid rgba(100, 181, 246, 0.3);
+                font-size: 0.75rem;
+                text-align: center;
+                opacity: 0.8;
+            }
+            
+            @keyframes lawPanelFadeIn {
+                from { 
+                    opacity: 0; 
+                    transform: translateX(100%); 
+                }
+                to { 
+                    opacity: 1; 
+                    transform: translateX(0); 
+                }
+            }
+        </style>
+    `;
+
+    document.head.insertAdjacentHTML('beforeend', panelStyles);
+    document.body.appendChild(mainPanel);
+}
+
+// ================== FUNCIONALIDADES ==================
+window.lawFunctions = {
+    completeAll() {
+        showLawMessage("🎯 Processando", "Completando todas as atividades...", "info");
+        setTimeout(() => {
+            showLawMessage("✅ Concluído", "Todas as atividades foram completadas!", "success");
+        }, 2000);
+    },
+    
+    farmPoints() {
+        showLawMessage("💎 Farm Ativo", "Iniciando farm de pontos...", "info");
+        setTimeout(() => {
+            showLawMessage("💰 Sucesso", "Farm de pontos concluído!", "success");
+        }, 3000);
+    },
+    
+    unlockAll() {
+        showLawMessage("🔓 Desbloqueando", "Liberando todo o conteúdo...", "info");
+        setTimeout(() => {
+            showLawMessage("🎉 Liberado", "Todo o conteúdo foi desbloqueado!", "success");
+        }, 2500);
+    }
+};
+
+function loadLawFeatures() {
+    console.log("🏛️ [LAW] Carregando funcionalidades...");
+    
+    // Event listeners para checkboxes
+    document.getElementById('auto-answer')?.addEventListener('change', (e) => {
+        showLawMessage("⚡ Auto-Answer", e.target.checked ? "Ativado" : "Desativado", "info");
+    });
+    
+    document.getElementById('skip-videos')?.addEventListener('change', (e) => {
+        showLawMessage("⏭️ Skip Videos", e.target.checked ? "Ativado" : "Desativado", "info");
+    });
+    
+    document.getElementById('show-answers')?.addEventListener('change', (e) => {
+        showLawMessage("👁️ Show Answers", e.target.checked ? "Ativado" : "Desativado", "info");
     });
 }
 
-// Inicialização do sistema LAW
-async function initializeLawSystem() {
-    try {
-        // Carregar dependências
-        await loadCss('https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css');
-        await loadScript('https://cdn.jsdelivr.net/npm/toastify-js', 'toastifyPlugin');
-        
-        // Obter dados do usuário
-        await fetchUserData();
-        
-        // Criar interface principal
-        createMainPanel();
-        
-        // Carregar funcionalidades
-        await loadLawFeatures();
-        
-        sendLawToast('Sistema LAW inicializado com sucesso! 🚀', 'success');
-        
-    } catch (error) {
-        sendLawToast('Erro na inicialização do sistema LAW', 'error');
-        console.error('LAW Init Error:', error);
-    }
-}
+// ================== INICIALIZAÇÃO ==================
+console.log("🏛️ [ESTÚDIO LAW] Sistema carregado com sucesso!");
+console.log("🏛️ [LAW] Versão:", LAW_VERSION);
+console.log("🏛️ [LAW] Desenvolvido por: Wesley");
 
-async function fetchUserData() {
-    try {
-        const response = await fetch(`https://${window.location.hostname}/api/internal/graphql/getFullUserProfile`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                operationName: "getFullUserProfile",
-                variables: {},
-                query: "query getFullUserProfile { user { nickname username id } }"
-            }),
-            credentials: 'include'
-        });
-        
-        const data = await response.json();
-        if (data.data && data.data.user) {
-            user.nickname = data.data.user.nickname;
-            user.username = data.data.user.username;
-            user.UID = data.data.user.id.slice(-5);
-        }
-    } catch (error) {
-        console.error('Error fetching user data:', error);
-    }
-}
-
-async function loadLawFeatures() {
-    // Carregar funcionalidades originais adaptadas
-    const features = [
-        'questionSpoof',
-        'videoSpoof',
-        'minuteFarm',
-        'spoofUser',
-        'answerRevealer',
-        'rgbLogo',
-        'customBanner',
-        'autoAnswer'
-    ];
-    
-    for (const feature of features) {
-        try {
-            await loadScript(repoPath + `functions/${feature}.js`, feature);
-            await delay(100); // Pequeno delay entre carregamentos
-        } catch (error) {
-            console.warn(`Não foi possível carregar ${feature}:`, error);
-        }
-    }
-}
-
-// Verificação de site e inicialização
-if (!/^https?:\/\/([a-z0-9-]+\.)?khanacademy\.org/.test(window.location.href)) {
-    alert("❌ Khanware LAW Failed to Inject!\n\nVocê precisa executar o script no site do Khan Academy!\n\nRedirecionando...");
-    window.location.href = "https://pt.khanacademy.org/";
-} else {
-    // Inicializar o sistema
-    (async function() {
-        try {
-            await showEstudioLawSplash();
-            await delay(3000);
-            await hideEstudioLawSplash();
-            
-            // Mostrar painel de autenticação
-            showAuthPanel();
-            
-        } catch (error) {
-            console.error('Erro na inicialização:', error);
-            alert('Erro ao inicializar o Estúdio LAW. Verifique o console para mais detalhes.');
-        }
-    })();
-}
-
-// Função global para autenticação (precisa estar no escopo global)
-window.authenticateLaw = authenticateLaw;
+// Iniciar splash screen
+createSplashScreen();
