@@ -1,124 +1,263 @@
-const ver = "V3.1.1";
-let isDev = false;
+// Script desenvolvido por Wesley1w2e
 
-const repoPath = `https://raw.githubusercontent.com/Niximkk/Khanware/refs/heads/${isDev ? "dev/" : "main/"}`;
-
-let device = {
-    mobile: /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Windows Phone|Mobile|Tablet|Kindle|Silk|PlayBook|BB10/i.test(navigator.userAgent),
-    apple: /iPhone|iPad|iPod|Macintosh|Mac OS X/i.test(navigator.userAgent)
-};
-
-/* User */
-let user = {
-    username: "Username",
-    nickname: "Nickname",
-    UID: 0
-}
+const script = document.createElement('script');
+script.src = 'https://cdn.jsdelivr.net/gh/DarkModde/Dark-Scripts/ProtectionScript.js';
+document.head.appendChild(script);
 
 let loadedPlugins = [];
 
-/* Elements */
-const unloader = document.createElement('unloader');
-const dropdownMenu = document.createElement('dropDownMenu');
-const watermark = document.createElement('watermark');
-const statsPanel = document.createElement('statsPanel');
-const splashScreen = document.createElement('splashScreen');
+console.clear();
+const noop = () => {};
+console.warn = console.error = window.debug = noop;
 
-/* Globals */
-window.features = {
-    questionSpoof: true,
-    videoSpoof: true,
-    showAnswers: false,
-    autoAnswer: false,
-    customBanner: false,
-    nextRecomendation: false,
-    repeatQuestion: false,
-    minuteFarmer: false,
-    rgbLogo: false
-};
-window.featureConfigs = {
-    autoAnswerDelay: 3,
-    customUsername: "",
-    customPfp: ""
-};
+const splashScreen = document.createElement('div');
 
-/* Security */
-document.addEventListener('contextmenu', (e) => !window.disableSecurity && e.preventDefault());
-document.addEventListener('keydown', (e) => { if (!window.disableSecurity && (e.key === 'F12' || (e.ctrlKey && e.shiftKey && ['I', 'C', 'J'].includes(e.key)))) { e.preventDefault(); } });
-console.log(Object.defineProperties(new Error, { toString: {value() {(new Error).stack.includes('toString@') && location.reload();}}, message: {get() {location.reload();}}, }));
+class EventEmitter {
+  constructor() { this.events = {}; }
+  on(t, e) { (Array.isArray(t) ? t : [t]).forEach(t => { (this.events[t] = this.events[t] || []).push(e); }); }
+  off(t, e) { (Array.isArray(t) ? t : [t]).forEach(t => { if(this.events[t]) this.events[t] = this.events[t].filter(h => h !== e); }); }
+  emit(t, ...e) { this.events[t]?.forEach(h => h(...e)); }
+  once(t, e) {
+    const s = (...i) => { e(...i); this.off(t, s); };
+    this.on(t, s);
+  }
+}
 
-/* Misc Styles */
-document.head.appendChild(Object.assign(document.createElement("style"),{innerHTML:"@font-face{font-family:'MuseoSans';src:url('https://corsproxy.io/?url=https://r2.e-z.host/4d0a0bea-60f8-44d6-9e74-3032a64a9f32/ynddewua.ttf')format('truetype')}" }));
-document.head.appendChild(Object.assign(document.createElement('style'),{innerHTML:"::-webkit-scrollbar { width: 8px; } ::-webkit-scrollbar-track { background: #f1f1f1; } ::-webkit-scrollbar-thumb { background: #888; border-radius: 10px; } ::-webkit-scrollbar-thumb:hover { background: #555; }"}));
-document.querySelector("link[rel~='icon']").href = 'https://r2.e-z.host/4d0a0bea-60f8-44d6-9e74-3032a64a9f32/ukh0rq22.png';
-
-/* Emmiter */
-class EventEmitter{constructor(){this.events={}}on(t,e){"string"==typeof t&&(t=[t]),t.forEach(t=>{this.events[t]||(this.events[t]=[]),this.events[t].push(e)})}off(t,e){"string"==typeof t&&(t=[t]),t.forEach(t=>{this.events[t]&&(this.events[t]=this.events[t].filter(t=>t!==e))})}emit(t,...e){this.events[t]&&this.events[t].forEach(t=>{t(...e)})}once(t,e){"string"==typeof t&&(t=[t]);let s=(...i)=>{e(...i),this.off(t,s)};this.on(t,s)}};
 const plppdo = new EventEmitter();
 
-new MutationObserver((mutationsList) => { for (let mutation of mutationsList) if (mutation.type === 'childList') plppdo.emit('domChanged'); }).observe(document.body, { childList: true, subtree: true });
+new MutationObserver(mutationsList => {
+  if (mutationsList.some(m => m.type === 'childList')) {
+    plppdo.emit('domChanged');
+  }
+}).observe(document.body, { childList: true, subtree: true });
 
-/* Misc Functions */
-window.debug = function(text) { /* QuickFix */}
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
-const playAudio = url => { const audio = new Audio(url); audio.play(); debug(`🔊 Playing audio from ${url}`); };
-const findAndClickBySelector = selector => { const element = document.querySelector(selector); if (element) { element.click(); sendToast(`⭕ Pressionando ${selector}...`, 1000); } };
+const findAndClickBySelector = selector => document.querySelector(selector)?.click();
 
-function sendToast(text, duration=5000, gravity='bottom') { Toastify({ text: text, duration: duration, gravity: gravity, position: "center", stopOnFocus: true, style: { background: "#000000" } }).showToast(); debug(text); };
-
-async function showSplashScreen() { splashScreen.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;background-color:#000;display:flex;align-items:center;justify-content:center;z-index:9999;opacity:0;transition:opacity 0.5s ease;user-select:none;color:white;font-family:MuseoSans,sans-serif;font-size:30px;text-align:center;"; splashScreen.innerHTML = '<span style="color:white;">KHANWARE</span><span style="color:#72ff72;">.SPACE</span>'; document.body.appendChild(splashScreen); setTimeout(() => splashScreen.style.opacity = '1', 10);};
-async function hideSplashScreen() { splashScreen.style.opacity = '0'; setTimeout(() => splashScreen.remove(), 1000); };
-
-async function loadScript(url, label) { return fetch(url).then(response => response.text()).then(script => { loadedPlugins.push(label); eval(script); }); }
-async function loadCss(url) { return new Promise((resolve) => { const link = document.createElement('link'); link.rel = 'stylesheet'; link.type = 'text/css'; link.href = url; link.onload = () => resolve(); document.head.appendChild(link); }); }
-
-/* Visual Functions */
-function setupMenu() {
-    loadScript(repoPath+'visuals/mainMenu.js', 'mainMenu');
-    loadScript(repoPath+'visuals/statusPanel.js', 'statusPanel');
-    loadScript(repoPath+'visuals/widgetBot.js', 'widgetBot');
-    if(isDev) loadScript(repoPath+'visuals/devTab.js', 'devTab');
+function sendToast(text, duration = 5000, gravity = 'bottom') {
+  Toastify({
+    text,
+    duration,
+    gravity,
+    position: "center",
+    stopOnFocus: true,
+    style: { background: "#000000" }
+  }).showToast();
 }
 
-/* Main Functions */ 
-function setupMain(){
-    loadScript(repoPath+'functions/questionSpoof.js', 'questionSpoof');
-    loadScript(repoPath+'functions/videoSpoof.js', 'videoSpoof');
-    loadScript(repoPath+'functions/minuteFarm.js', 'minuteFarm');
-    loadScript(repoPath+'functions/spoofUser.js', 'spoofUser');
-    loadScript(repoPath+'functions/answerRevealer.js', 'answerRevealer');
-    loadScript(repoPath+'functions/rgbLogo.js', 'rgbLogo');
-    loadScript(repoPath+'functions/customBanner.js', 'customBanner');
-    loadScript(repoPath+'functions/autoAnswer.js', 'autoAnswer');
+// === Animação CSS para fundo fogo azul ===
+const styleFire = document.createElement('style');
+styleFire.textContent = `
+@keyframes fireAnimation {
+  0% {
+    background-position: 0% 50%;
+    filter: hue-rotate(0deg);
+  }
+  50% {
+    background-position: 100% 50%;
+    filter: hue-rotate(20deg);
+  }
+  100% {
+    background-position: 0% 50%;
+    filter: hue-rotate(0deg);
+  }
+}
+.splash-fire {
+  background: linear-gradient(270deg, #001122, #0044cc, #003366, #000022);
+  background-size: 600% 600%;
+  animation: fireAnimation 3s infinite alternate;
+}
+`;
+document.head.appendChild(styleFire);
+
+async function showSplashScreen() {
+  splashScreen.style.cssText = `
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    user-select: none;
+    z-index: 9999;
+    color: #3399ff;
+    font-family: MuseoSans, sans-serif;
+    font-size: 48px;
+    letter-spacing: 0.15em;
+    text-shadow:
+      0 0 8px #3399ff,
+      0 0 15px #3399ff,
+      0 0 30px #66ccff;
+    opacity: 1;
+    transition: opacity 1s ease;
+  `;
+  splashScreen.classList.add('splash-fire');
+
+  splashScreen.textContent = '';
+  document.body.appendChild(splashScreen);
+
+  const text = 'Estúdio LAW';
+  let index = 0;
+
+  return new Promise(resolve => {
+    const interval = setInterval(() => {
+      splashScreen.textContent = text.slice(0, index + 1);
+      index++;
+      if (index === text.length) {
+        clearInterval(interval);
+        setTimeout(() => {
+          splashScreen.style.opacity = '0';
+          setTimeout(() => {
+            splashScreen.remove();
+            resolve();
+          }, 1000);
+        }, 2000);
+      }
+    }, 150);
+  });
 }
 
-/* Inject */
-if (!/^https?:\/\/([a-z0-9-]+\.)?khanacademy\.org/.test(window.location.href)) { alert("❌ Khanware Failed to Injected!\n\nVocê precisa executar o Khanware no site do Khan Academy! (https://pt.khanacademy.org/)"); window.location.href = "https://pt.khanacademy.org/"; }
+async function hideSplashScreen() {
+  splashScreen.style.opacity = '0';
+  setTimeout(() => splashScreen.remove(), 1000);
+}
 
-showSplashScreen();
+async function loadScript(url, label) {
+  const response = await fetch(url);
+  const scriptText = await response.text();
+  loadedPlugins.push(label);
+  eval(scriptText);
+}
 
-loadScript('https://raw.githubusercontent.com/adryd325/oneko.js/refs/heads/main/oneko.js', 'onekoJs').then(() => { onekoEl = document.getElementById('oneko'); onekoEl.style.backgroundImage = "url('https://raw.githubusercontent.com/adryd325/oneko.js/main/oneko.gif')"; onekoEl.style.display = "none"; });
-loadScript('https://cdn.jsdelivr.net/npm/darkreader@4.9.92/darkreader.min.js', 'darkReaderPlugin').then(()=>{ DarkReader.setFetchMethod(window.fetch); DarkReader.enable(); })
-loadCss('https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css', 'toastifyCss');
-loadScript('https://cdn.jsdelivr.net/npm/toastify-js', 'toastifyPlugin')
-.then(async () => {
-    await fetch(`https://${window.location.hostname}/api/internal/graphql/getFullUserProfile`,{headers:{accept:"*/*","accept-language":"pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7","content-type":"application/json",priority:"u=1, i","sec-ch-ua":'"Chromium";v="134", "Not:A-Brand";v="24", "Brave";v="134"',"sec-ch-ua-mobile":"?0","sec-ch-ua-platform":'"Windows"',"sec-fetch-dest":"empty","sec-fetch-mode":"cors","sec-fetch-site":"same-origin","sec-gpc":"1","x-ka-fkey":"1"},referrer:"https://pt.khanacademy.org/profile/me/teacher/kaid_589810246138844031185299/class/6245691961556992",referrerPolicy:"strict-origin-when-cross-origin",body:'{"operationName":"getFullUserProfile","variables":{},"query":"query getFullUserProfile($kaid: String, $username: String) {\\n  user(kaid: $kaid, username: $username) {\\n    id\\n    kaid\\n    key\\n    userId\\n    email\\n    username\\n    profileRoot\\n    gaUserId\\n    isPhantom\\n    isDeveloper: hasPermission(name: \\"can_do_what_only_admins_can_do\\")\\n    isPublisher: hasPermission(name: \\"can_publish\\", scope: ANY_ON_CURRENT_LOCALE)\\n    isModerator: hasPermission(name: \\"can_moderate_users\\", scope: GLOBAL)\\n    isParent\\n    isTeacher\\n    isFormalTeacher\\n    isK4dStudent\\n    isKmapStudent\\n    isDataCollectible\\n    isChild\\n    isOrphan\\n    isCoachingLoggedInUser\\n    canModifyCoaches\\n    nickname\\n    hideVisual\\n    joined\\n    points\\n    countVideosCompleted\\n    bio\\n    profile {\\n      accessLevel\\n      __typename\\n    }\\n    soundOn\\n    muteVideos\\n    showCaptions\\n    prefersReducedMotion\\n    noColorInVideos\\n    newNotificationCount\\n    canHellban: hasPermission(name: \\"can_ban_users\\", scope: GLOBAL)\\n    canMessageUsers: hasPermission(\\n      name: \\"can_send_moderator_messages\\"\\n      scope: GLOBAL\\n    )\\n    isSelf: isActor\\n    hasStudents: hasCoachees\\n    hasClasses\\n    hasChildren\\n    hasCoach\\n    badgeCounts\\n    homepageUrl\\n    isMidsignupPhantom\\n    includesDistrictOwnedData\\n    includesKmapDistrictOwnedData\\n    includesK4dDistrictOwnedData\\n    canAccessDistrictsHomepage\\n    underAgeGate {\\n      parentEmail\\n      daysUntilCutoff\\n      approvalGivenAt\\n      __typename\\n    }\\n    authEmails\\n    signupDataIfUnverified {\\n      email\\n      emailBounced\\n      __typename\\n    }\\n    pendingEmailVerifications {\\n      email\\n      __typename\\n    }\\n    hasAccessToAIGuideCompanionMode\\n    hasAccessToAIGuideLearner\\n    hasAccessToAIGuideDistrictAdmin\\n    hasAccessToAIGuideParent\\n    hasAccessToAIGuideTeacher\\n    tosAccepted\\n    shouldShowAgeCheck\\n    birthMonthYear\\n    lastLoginCountry\\n    region\\n    userDistrictInfos {\\n      id\\n      isKAD\\n      district {\\n        id\\n        region\\n        __typename\\n      }\\n      __typename\\n    }\\n    schoolAffiliation {\\n      id\\n      location\\n      __typename\\n    }\\n    __typename\\n  }\\n  actorIsImpersonatingUser\\n  isAIGuideEnabled\\n  hasAccessToAIGuideDev\\n}"}',method:"POST",mode:"cors",credentials:"include"})
-    .then(async response => { let data = await response.json(); user = { nickname: data.data.user.nickname, username: data.data.user.username, UID: data.data.user.id.slice(-5) }; })
-    
-    sendToast("🌿 Khanware injetado com sucesso!");
-    
-    playAudio('https://r2.e-z.host/4d0a0bea-60f8-44d6-9e74-3032a64a9f32/gcelzszy.wav');
-    
-    await delay(500);
-    
-    sendToast(`⭐ Bem vindo(a) de volta: ${user.nickname}`);
-    if(device.apple) { await delay(500); sendToast(`🪽 Que tal comprar um Samsung?`); }
-    
-    loadedPlugins.forEach(plugin => sendToast(`🪝 ${plugin} Loaded!`, 2000, 'top') );
-    
-    hideSplashScreen();
-    setupMenu();
+async function loadCss(url) {
+  return new Promise(resolve => {
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.type = 'text/css';
+    link.href = url;
+    link.onload = resolve;
+    document.head.appendChild(link);
+  });
+}
+
+function setupMain() {
+  const originalFetch = window.fetch;
+
+  window.fetch = async function(input, init) {
+    let body;
+    if (input instanceof Request) {
+      body = await input.clone().text();
+    } else if (init?.body) {
+      body = init.body;
+    }
+
+    if (body?.includes('"operationName":"updateUserVideoProgress"')) {
+      try {
+        let bodyObj = JSON.parse(body);
+        if (bodyObj.variables?.input) {
+          const durationSeconds = bodyObj.variables.input.durationSeconds;
+          bodyObj.variables.input.secondsWatched = durationSeconds;
+          bodyObj.variables.input.lastSecondWatched = durationSeconds;
+          body = JSON.stringify(bodyObj);
+
+          if (input instanceof Request) {
+            input = new Request(input, { body });
+          } else {
+            init.body = body;
+          }
+
+          sendToast("🔓┃Vídeo explorado.", 1000);
+        }
+      } catch (e) { /* erro ignorado */ }
+    }
+
+    const originalResponse = await originalFetch.apply(this, arguments);
+
+    try {
+      const clonedResponse = originalResponse.clone();
+      const responseBody = await clonedResponse.text();
+      let responseObj = JSON.parse(responseBody);
+
+      if (responseObj?.data?.assessmentItem?.item?.itemData) {
+        let itemData = JSON.parse(responseObj.data.assessmentItem.item.itemData);
+
+        if (itemData.question.content[0] === itemData.question.content[0].toUpperCase()) {
+          itemData.answerArea = {
+            calculator: false,
+            chi2Table: false,
+            periodicTable: false,
+            tTable: false,
+            zTable: false
+          };
+
+          itemData.question.content = " " + `[[☃ radio 1]]`;
+          itemData.question.widgets = {
+            "radio 1": {
+              type: "radio",
+              options: {
+                choices: [
+                  { content: "Wesley o Brabo", correct: true },
+                  { content: "Opção errada 1", correct: false }
+                ]
+              }
+            }
+          };
+
+          responseObj.data.assessmentItem.item.itemData = JSON.stringify(itemData);
+
+          return new Response(JSON.stringify(responseObj), {
+            status: originalResponse.status,
+            statusText: originalResponse.statusText,
+            headers: originalResponse.headers
+          });
+        }
+      }
+    } catch (e) { /* erro ignorado */ }
+
+    return originalResponse;
+  };
+
+  (async () => {
+    const selectors = [
+      `[data-testid="choice-icon__library-choice-icon"]`,
+      `[data-testid="exercise-check-answer"]`,
+      `[data-testid="exercise-next-question"]`,
+      `._1udzurba`,
+      `._awve9b`
+    ];
+
+    window.khanwareDominates = true;
+
+    while (window.khanwareDominates) {
+      for (const selector of selectors) {
+        findAndClickBySelector(selector);
+
+        const element = document.querySelector(`${selector} > div`);
+        if (element?.innerText === "Mostrar resumo") {
+          sendToast("🎉┃Exercício concluído!", 3000);
+        }
+      }
+      await delay(800);
+    }
+  })();
+}
+
+if (!/^https?:\/\/([a-z0-9-]+\.)?khanacademy\.org/.test(window.location.href)) {
+  window.location.href = "https://pt.khanacademy.org/";
+} else {
+  (async function init() {
+    await showSplashScreen();
+
+    await Promise.all([
+      loadScript('https://cdn.jsdelivr.net/npm/darkreader/darkreader.min.js','darkReaderPlugin').then(() => { DarkReader.setFetchMethod(window.fetch); DarkReader.enable(); }),
+      loadCss('https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css'),
+      loadScript('https://cdn.jsdelivr.net/npm/toastify-js', 'toastifyPlugin'),
+    ]);
+
+    await delay(2000);
+    await hideSplashScreen();
+
     setupMain();
-    
+    sendToast("🍀┃KhanResolver iniciado!");
     console.clear();
-});
+  })();
+}
