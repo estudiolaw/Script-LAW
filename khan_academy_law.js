@@ -15,7 +15,7 @@
     overlay.style.cssText = `
       position: fixed;
       top: 0; left: 0; width: 100vw; height: 100vh;
-      background-color: rgba(0, 0, 0, 0.5);
+      background-color: rgba(0, 0, 0, 0.6);
       display: flex;
       justify-content: center;
       align-items: center;
@@ -26,14 +26,14 @@
     `;
 
     overlay.innerHTML = `
-      <div style="background: linear-gradient(145deg, #3f51b5, #00bcd4); padding: 40px 60px; border-radius: 20px; box-shadow: 0px 0px 30px rgba(0, 0, 0, 0.3); text-align: center; width: 350px; animation: zoomIn 0.5s ease-in-out;">
+      <div style="background: linear-gradient(145deg, #3f51b5, #00bcd4); padding: 40px 50px; border-radius: 20px; box-shadow: 0px 0px 30px rgba(0, 0, 0, 0.3); text-align: center; width: 380px; animation: zoomIn 0.5s ease-in-out;">
         <h2 style="margin-bottom: 30px; font-weight: 700; color: #fff;">🔐 Acesso Restrito</h2>
-        <div style="position: relative; margin-bottom: 20px;">
-          <input id="law-password-input" type="password" placeholder="Digite a senha" style="width: 100%; padding: 12px 20px; font-size: 1.1em; border-radius: 8px; border: 2px solid #fff; outline: none; color: #fff; background: rgba(255, 255, 255, 0.2); transition: border-color 0.3s ease;">
+        <div style="position: relative; margin-bottom: 30px;">
+          <input id="law-password-input" type="password" placeholder="Digite a senha" style="width: 100%; padding: 14px 20px; font-size: 1.1em; border-radius: 10px; border: 2px solid #fff; outline: none; color: #fff; background: rgba(255, 255, 255, 0.2); transition: border-color 0.3s ease;">
           <span id="toggle-eye" style="position: absolute; right: 10px; top: 10px; font-size: 1.5em; cursor: pointer; color: #fff;">👁️</span>
         </div>
-        <button id="law-password-btn" style="width: 100%; padding: 12px 0; background: #00bcd4; border: none; border-radius: 8px; font-size: 1.2em; color: white; cursor: pointer; font-weight: 600; transition: background 0.3s ease;">Entrar</button>
-        <p id="law-password-msg" style="margin-top: 20px; color: #ff5555; font-weight: 600;"></p>
+        <button id="law-password-btn" style="width: 100%; padding: 14px 0; background: #00bcd4; border: none; border-radius: 10px; font-size: 1.2em; color: white; cursor: pointer; font-weight: 600; transition: background 0.3s ease; margin-bottom: 20px;">Entrar</button>
+        <p id="law-password-msg" style="margin-top: 15px; color: #ff5555; font-weight: 600;"></p>
       </div>
     `;
 
