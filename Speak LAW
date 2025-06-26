@@ -1,211 +1,238 @@
-(async function () {
-  'use strict';
+# Script de Automação com Text-to-Speech
+# Criado para automatizar tarefas com feedback de voz
 
-  // 🟦 Lista de senhas válidas com data de expiração (ano-mês-dia)
-  const validPasswords = [
-    { senha: "estudio123", validade: "2025-12-31" },
-    { senha: "law2024", validade: "2025-08-01" },
-    { senha: "speakbot", validade: "2025-07-15" },
-    { senha: "acesso01", validade: "2025-09-30" },
-    { senha: "testeOK", validade: "2025-11-20" },
-    { senha: "open123", validade: "2025-12-01" },
-    { senha: "powerUser", validade: "2025-10-10" },
-    { senha: "devAccess", validade: "2025-08-25" },
-    { senha: "lawAI", validade: "2025-07-30" },
-    { senha: "superSpeak", validade: "2025-12-25" }
-  ];
+# Carrega o assembly para síntese de voz
+Add-Type -AssemblyName System.Speech
+$tts = New-Object System.Speech.Synthesis.SpeechSynthesizer
 
-  // Utilitário de espera
-  function wait(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  }
+# Configurações de voz
+$tts.SelectVoiceByHints([System.Speech.Synthesis.VoiceGender]::Female)
+$tts.Rate = 0  # Velocidade da fala (-10 a 10)
+$tts.Volume = 80  # Volume (0 a 100)
 
-  // 🛡️ PAINEL DE SENHA
-  const passwordScreen = document.createElement('div');
-  passwordScreen.style.cssText = `
-    position:fixed; top:0; left:0; width:100%; height:100%;
-    background: linear-gradient(135deg, #1a1f2e, #0e1624);
-    display:flex; flex-direction:column; align-items:center; justify-content:center;
-    color: white; font-family: 'Segoe UI', sans-serif; z-index:9999;
-  `;
+# Função para falar texto
+function Speak-Text {
+    param([string]$text)
+    Write-Host "🔊 Falando: $text" -ForegroundColor Green
+    $tts.Speak($text)
+}
 
-  passwordScreen.innerHTML = `
-    <div style="text-align:center;">
-      <h1 style="font-size:2.5em; color:#00aaff; margin-bottom:20px;">🔐 Acesso Restrito</h1>
-      <input id="senhaInput" type="password" placeholder="Digite sua senha..." style="
-        padding: 12px 20px; border-radius: 10px; border: none; font-size: 1.2em;
-        outline: none; width: 250px; text-align: center;
-      "/>
-      <div id="mensagemSenha" style="margin-top:15px; height: 20px; font-weight: bold;"></div>
-      <button id="btnValidarSenha" style="
-        margin-top: 20px; padding: 10px 25px;
-        background: linear-gradient(45deg, #00aaff, #0077cc);
-        border: none; border-radius: 25px; color: white;
-        font-size: 1em; font-weight: bold; cursor: pointer;
-      ">Entrar</button>
-    </div>
-  `;
-
-  document.body.appendChild(passwordScreen);
-
-  const input = document.getElementById('senhaInput');
-  const btn = document.getElementById('btnValidarSenha');
-  const msg = document.getElementById('mensagemSenha');
-
-  function validarSenha(senha) {
-    const hoje = new Date();
-    for (const item of validPasswords) {
-      if (item.senha === senha) {
-        const validade = new Date(item.validade);
-        if (validade >= hoje) return true;
-      }
-    }
-    return false;
-  }
-
-  btn.onclick = async () => {
-    const senhaDigitada = input.value.trim();
-    if (validarSenha(senhaDigitada)) {
-      msg.style.color = '#00ff99';
-      msg.textContent = '✅ Acesso liberado!';
-
-      // 🎉 Efeito visual de comemoração
-      const confete = document.createElement('div');
-      confete.innerHTML = '🎉🎊';
-      confete.style.cssText = `
-        position: fixed; top: 20px; font-size: 3em;
-        left: 50%; transform: translateX(-50%);
-        animation: pulso 1s ease infinite;
-      `;
-      passwordScreen.appendChild(confete);
-
-      const style = document.createElement('style');
-      style.innerHTML = `
-        @keyframes pulso {
-          0% { transform: translateX(-50%) scale(1); }
-          50% { transform: translateX(-50%) scale(1.2); }
-          100% { transform: translateX(-50%) scale(1); }
+# Função para limpar arquivos temporários
+function Clear-TempFiles {
+    Speak-Text "Iniciando limpeza de arquivos temporários"
+    
+    $tempPaths = @(
+        "$env:TEMP\*",
+        "$env:LOCALAPPDATA\Temp\*",
+        "$env:WINDIR\Temp\*"
+    )
+    
+    $totalCleaned = 0
+    foreach ($path in $tempPaths) {
+        try {
+            $files = Get-ChildItem -Path $path -Recurse -Force -ErrorAction SilentlyContinue
+            $count = $files.Count
+            Remove-Item -Path $path -Recurse -Force -ErrorAction SilentlyContinue
+            $totalCleaned += $count
+            Write-Host "✅ Limpeza concluída: $path ($count arquivos)" -ForegroundColor Yellow
         }
-      `;
-      document.head.appendChild(style);
-
-      await wait(2000);
-      passwordScreen.remove();
-
-      // ➕ CONTINUA: mostra splash e inicia automação
-      await showEstudioLawSplash();
-      await wait(2000);
-      await hideEstudioLawSplash();
-      await iniciarAutomacao();
-
-    } else {
-      msg.style.color = 'red';
-      msg.textContent = '❌ Senha incorreta ou expirada!';
-      input.style.border = '2px solid red';
+        catch {
+            Write-Host "⚠️ Erro ao limpar: $path" -ForegroundColor Red
+        }
     }
-  };
+    
+    Speak-Text "Limpeza concluída. $totalCleaned arquivos removidos"
+}
 
-  // 🔵 Splash screen Estúdio LAW
-  const splashScreen = document.createElement('div');
-
-  async function showEstudioLawSplash() {
-    splashScreen.style.cssText = `
-      position:fixed; top:0; left:0; width:100%; height:100%;
-      z-index:9999;
-      display:flex; align-items:center; justify-content:center;
-      background: linear-gradient(-45deg, #0f1c2e, #0a1a2f, #152842, #0a1b2d);
-      background-size: 400% 400%;
-      animation: backgroundFlow 10s ease infinite;
-      user-select:none;
-      font-family:'Segoe UI', sans-serif;
-      transition: opacity 0.8s ease;
-    `;
-
-    splashScreen.innerHTML = `
-      <div style="
-        font-size: 3em;
-        font-weight: bold;
-        color: #ffffff;
-        text-shadow: 0 0 10px #00aaff, 0 0 20px #0077cc;
-        animation: glowText 2s ease-in-out infinite alternate,
-                   fadeSlideIn 1.5s ease forwards;
-        opacity: 0;
-        transform: translateY(30px);
-      ">
-        Estúdio <span style="color:#00aaff;">LAW</span>
-      </div>
-    `;
-
-    const style = document.createElement('style');
-    style.textContent = `
-      @keyframes backgroundFlow {
-        0% {background-position: 0% 50%;}
-        50% {background-position: 100% 50%;}
-        100% {background-position: 0% 50%;}
-      }
-      @keyframes glowText {
-        from { text-shadow: 0 0 10px #00aaff, 0 0 20px #0077cc; }
-        to { text-shadow: 0 0 20px #00ccff, 0 0 30px #00aaff; }
-      }
-      @keyframes fadeSlideIn {
-        to { opacity: 1; transform: translateY(0); }
-      }
-    `;
-    document.head.appendChild(style);
-    document.body.appendChild(splashScreen);
-    setTimeout(() => splashScreen.style.opacity = '1', 10);
-  }
-
-  async function hideEstudioLawSplash() {
-    splashScreen.style.opacity = '0';
-    setTimeout(() => splashScreen.remove(), 1000);
-  }
-
-  // 🚀 Script principal de automação
-  async function iniciarAutomacao() {
-    const CONFIG = { delay: 1500, maxAttempts: 50 };
-    let attempts = 0, completed = 0;
-
-    const SELECTORS = [
-      'button[data-testid*="continue"]',
-      'button[data-testid*="next"]',
-      'button[data-testid*="start"]',
-      'button[data-testid*="complete"]',
-      'button[data-testid*="practice"]',
-      '.continue-btn, .next-btn, .start-btn',
-      'button:contains("Continuar")', 'button:contains("Próximo")',
-      'button:contains("Next")', 'button:contains("Start")'
-    ];
-
-    function isVisible(el) {
-      if (!el) return false;
-      const s = getComputedStyle(el);
-      return s.display !== 'none' && s.opacity !== '0' && el.offsetHeight > 0;
+# Função para verificar atualizações do sistema
+function Check-WindowsUpdates {
+    Speak-Text "Verificando atualizações do Windows"
+    
+    try {
+        # Instala o módulo PSWindowsUpdate se não estiver instalado
+        if (!(Get-Module -ListAvailable -Name PSWindowsUpdate)) {
+            Speak-Text "Instalando módulo de atualizações"
+            Install-Module PSWindowsUpdate -Force -Scope CurrentUser
+        }
+        
+        Import-Module PSWindowsUpdate
+        $updates = Get-WUList
+        
+        if ($updates.Count -gt 0) {
+            Speak-Text "Encontradas $($updates.Count) atualizações disponíveis"
+            Write-Host "📋 Atualizações disponíveis:" -ForegroundColor Cyan
+            $updates | ForEach-Object { Write-Host "  - $($_.Title)" -ForegroundColor White }
+        } else {
+            Speak-Text "Sistema está atualizado"
+            Write-Host "✅ Nenhuma atualização disponível" -ForegroundColor Green
+        }
     }
-
-    function findClickable() {
-      for (const selector of SELECTORS) {
-        const list = [...document.querySelectorAll('button, a[role="button"]')]
-          .filter(el => el.textContent.toLowerCase().includes(selector.split('"')[1]?.toLowerCase()) && isVisible(el));
-        if (list.length) return list[0];
-      }
-      return null;
+    catch {
+        Speak-Text "Erro ao verificar atualizações"
+        Write-Host "❌ Erro: $($_.Exception.Message)" -ForegroundColor Red
     }
+}
 
-    console.log('🔁 Iniciando automação...');
-    while (attempts < CONFIG.maxAttempts) {
-      attempts++;
-      const el = findClickable();
-      if (el) {
-        el.click(); completed++;
-        console.log(`✅ [${attempts}] ${el.innerText || 'Botão'}`);
-        await wait(CONFIG.delay);
-      } else {
-        console.log('⏳ Aguardando elementos...');
-        await wait(CONFIG.delay);
-      }
+# Função para verificar status do sistema
+function Check-SystemStatus {
+    Speak-Text "Verificando status do sistema"
+    
+    # Uso da CPU
+    $cpu = Get-Counter "\Processor(_Total)\% Processor Time" | Select-Object -ExpandProperty CounterSamples | Select-Object -ExpandProperty CookedValue
+    $cpu = [Math]::Round($cpu, 2)
+    
+    # Uso da RAM
+    $memory = Get-CimInstance -ClassName Win32_OperatingSystem
+    $totalRAM = [Math]::Round($memory.TotalVisibleMemorySize / 1MB, 2)
+    $freeRAM = [Math]::Round($memory.FreePhysicalMemory / 1MB, 2)
+    $usedRAM = [Math]::Round($totalRAM - $freeRAM, 2)
+    $ramPercent = [Math]::Round(($usedRAM / $totalRAM) * 100, 2)
+    
+    # Espaço em disco (unidade C:)
+    $disk = Get-CimInstance -ClassName Win32_LogicalDisk -Filter "DeviceID='C:'"
+    $totalDisk = [Math]::Round($disk.Size / 1GB, 2)
+    $freeDisk = [Math]::Round($disk.FreeSpace / 1GB, 2)
+    $usedDisk = [Math]::Round($totalDisk - $freeDisk, 2)
+    $diskPercent = [Math]::Round(($usedDisk / $totalDisk) * 100, 2)
+    
+    Write-Host "📊 Status do Sistema:" -ForegroundColor Cyan
+    Write-Host "  CPU: $cpu%" -ForegroundColor $(if($cpu -gt 80) {"Red"} else {"Green"})
+    Write-Host "  RAM: $ramPercent% ($usedRAM GB de $totalRAM GB)" -ForegroundColor $(if($ramPercent -gt 80) {"Red"} else {"Green"})
+    Write-Host "  Disco C: $diskPercent% ($usedDisk GB de $totalDisk GB)" -ForegroundColor $(if($diskPercent -gt 80) {"Red"} else {"Green"})
+    
+    $statusMsg = "CPU em $cpu por cento, RAM em $ramPercent por cento, Disco em $diskPercent por cento"
+    Speak-Text $statusMsg
+}
+
+# Função para fazer backup de arquivos importantes
+function Backup-ImportantFiles {
+    param([string]$backupPath = "C:\Backup_$(Get-Date -Format 'yyyyMMdd_HHmmss')")
+    
+    Speak-Text "Iniciando backup de arquivos importantes"
+    
+    # Cria diretório de backup
+    New-Item -Path $backupPath -ItemType Directory -Force | Out-Null
+    
+    # Pastas para backup
+    $foldersToBackup = @(
+        "$env:USERPROFILE\Desktop",
+        "$env:USERPROFILE\Documents",
+        "$env:USERPROFILE\Downloads",
+        "$env:USERPROFILE\Pictures"
+    )
+    
+    foreach ($folder in $foldersToBackup) {
+        if (Test-Path $folder) {
+            $folderName = Split-Path $folder -Leaf
+            $destPath = Join-Path $backupPath $folderName
+            
+            try {
+                Copy-Item -Path $folder -Destination $destPath -Recurse -Force
+                Write-Host "✅ Backup concluído: $folderName" -ForegroundColor Green
+            }
+            catch {
+                Write-Host "❌ Erro no backup: $folderName" -ForegroundColor Red
+            }
+        }
     }
+    
+    Speak-Text "Backup concluído em $backupPath"
+}
 
-    console.log(`🏁 Finalizado. ${completed} ações realizadas.`);
-  }
-})();
+# Função para organizar área de trabalho
+function Organize-Desktop {
+    Speak-Text "Organizando área de trabalho"
+    
+    $desktop = [Environment]::GetFolderPath("Desktop")
+    $organized = Join-Path $desktop "Arquivos_Organizados_$(Get-Date -Format 'yyyyMMdd')"
+    
+    # Cria pastas de organização
+    $folders = @("Documentos", "Imagens", "Videos", "Executaveis", "Outros")
+    foreach ($folder in $folders) {
+        New-Item -Path (Join-Path $organized $folder) -ItemType Directory -Force | Out-Null
+    }
+    
+    # Organiza arquivos por extensão
+    $files = Get-ChildItem -Path $desktop -File
+    foreach ($file in $files) {
+        $dest = switch ($file.Extension.ToLower()) {
+            {$_ -in ".txt", ".doc", ".docx", ".pdf", ".rtf"} { "Documentos" }
+            {$_ -in ".jpg", ".jpeg", ".png", ".gif", ".bmp"} { "Imagens" }
+            {$_ -in ".mp4", ".avi", ".mkv", ".mov", ".wmv"} { "Videos" }
+            {$_ -in ".exe", ".msi", ".bat", ".cmd"} { "Executaveis" }
+            default { "Outros" }
+        }
+        
+        try {
+            Move-Item -Path $file.FullName -Destination (Join-Path $organized $dest) -Force
+            Write-Host "📁 Movido: $($file.Name) → $dest" -ForegroundColor Yellow
+        }
+        catch {
+            Write-Host "❌ Erro ao mover: $($file.Name)" -ForegroundColor Red
+        }
+    }
+    
+    Speak-Text "Área de trabalho organizada"
+}
+
+# Menu principal
+function Show-Menu {
+    Clear-Host
+    Write-Host "🤖 SCRIPT DE AUTOMAÇÃO COM VOICE" -ForegroundColor Cyan
+    Write-Host "=================================" -ForegroundColor Cyan
+    Write-Host "1. Limpar arquivos temporários" -ForegroundColor White
+    Write-Host "2. Verificar status do sistema" -ForegroundColor White
+    Write-Host "3. Verificar atualizações do Windows" -ForegroundColor White
+    Write-Host "4. Fazer backup de arquivos importantes" -ForegroundColor White
+    Write-Host "5. Organizar área de trabalho" -ForegroundColor White
+    Write-Host "6. Executar todas as tarefas" -ForegroundColor White
+    Write-Host "0. Sair" -ForegroundColor White
+    Write-Host "=================================" -ForegroundColor Cyan
+}
+
+# Loop principal
+do {
+    Show-Menu
+    Speak-Text "Escolha uma opção do menu"
+    $choice = Read-Host "Digite sua escolha"
+    
+    switch ($choice) {
+        "1" { Clear-TempFiles }
+        "2" { Check-SystemStatus }
+        "3" { Check-WindowsUpdates }
+        "4" { 
+            $backupPath = Read-Host "Digite o caminho do backup (Enter para padrão)"
+            if ([string]::IsNullOrWhiteSpace($backupPath)) {
+                Backup-ImportantFiles
+            } else {
+                Backup-ImportantFiles -backupPath $backupPath
+            }
+        }
+        "5" { Organize-Desktop }
+        "6" {
+            Speak-Text "Executando todas as tarefas de automação"
+            Clear-TempFiles
+            Check-SystemStatus
+            Check-WindowsUpdates
+            Backup-ImportantFiles
+            Organize-Desktop
+            Speak-Text "Todas as tarefas foram concluídas"
+        }
+        "0" { 
+            Speak-Text "Encerrando script de automação. Até logo!"
+            break 
+        }
+        default { 
+            Speak-Text "Opção inválida. Tente novamente"
+            Write-Host "❌ Opção inválida!" -ForegroundColor Red 
+        }
+    }
+    
+    if ($choice -ne "0") {
+        Write-Host "`nPressione qualquer tecla para continuar..." -ForegroundColor Gray
+        $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+    }
+} while ($choice -ne "0")
+
+# Libera recursos
+$tts.Dispose()
