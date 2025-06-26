@@ -27,7 +27,7 @@
     `;
 
     overlay.innerHTML = `
-      <div style="background: #0a1f2c; padding: 40px 50px; border-radius: 20px; box-shadow: 0px 0px 30px rgba(0, 0, 0, 0.3); text-align: center; width: 380px; animation: zoomIn 0.5s ease-in-out;">
+      <div style="background: linear-gradient(145deg, #0a1f2c, #004e8e); padding: 40px 50px; border-radius: 20px; box-shadow: 0px 0px 30px rgba(0, 0, 0, 0.3); text-align: center; width: 380px; animation: zoomIn 0.5s ease-in-out;">
         <h2 style="margin-bottom: 30px; font-weight: 700; color: #fff;">🔐 Acesso Restrito</h2>
         <div style="position: relative; margin-bottom: 30px;">
           <input id="law-password-input" type="password" placeholder="Digite a senha" style="width: 100%; padding: 14px 20px; font-size: 1.1em; border-radius: 10px; border: 2px solid #fff; outline: none; color: #fff; background: rgba(255, 255, 255, 0.2); transition: border-color 0.3s ease;">
@@ -86,33 +86,6 @@
 
     document.body.appendChild(celebration);
 
-    // Confetes emoji
-    for (let i = 0; i < 30; i++) {
-      const confete = document.createElement('div');
-      confete.textContent = '🎊';
-      confete.style.position = 'fixed';
-      confete.style.fontSize = `${Math.floor(Math.random() * 24) + 16}px`;
-      confete.style.left = `${Math.random() * window.innerWidth}px`;
-      confete.style.top = `${-50 - Math.random() * 200}px`;
-      confete.style.opacity = Math.random();
-      confete.style.animation = `confeteFall ${5 + Math.random() * 3}s linear infinite`;
-      confete.style.animationDelay = `${Math.random() * 5}s`;
-      confete.style.pointerEvents = 'none';
-      celebration.appendChild(confete);
-    }
-
-    if (!document.getElementById('law-confete-style')) {
-      const style = document.createElement('style');
-      style.id = 'law-confete-style';
-      style.textContent = `
-        @keyframes confeteFall {
-          0% {transform: translateY(0) rotate(0deg);}
-          100% {transform: translateY(100vh) rotate(360deg);}
-        }
-      `;
-      document.head.appendChild(style);
-    }
-
     return celebration;
   }
 
@@ -124,7 +97,7 @@
     document.body.style.overflow = '';
   }
 
-  // --- Animação do fundo (fogos de artifício) ---
+  // --- Efeito de fogos de artifício ---
   function addFireworks() {
     const fireworksContainer = document.createElement('div');
     fireworksContainer.id = 'fireworks-container';
@@ -194,7 +167,10 @@
 
     unblockUse();
 
-    // Depois que liberar acesso, inicia script principal
+    // Depois que liberar acesso, para os fogos de artifício
+    document.getElementById('fireworks-container').remove();
+
+    // Inicia o script principal
     await runMainScript();
   }
 
