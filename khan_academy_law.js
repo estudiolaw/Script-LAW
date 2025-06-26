@@ -769,4 +769,25 @@ async function loadLawFeatures() {
 
 // Verificação de site e inicialização
 if (!/^https?:\/\/([a-z0-9-]+\.)?khanacademy\.org/.test(window.location.href)) {
-    alert("❌
+    alert("❌ Khanware LAW Failed to Inject!\n\nVocê precisa executar o script no site do Khan Academy!\n\nRedirecionando...");
+    window.location.href = "https://pt.khanacademy.org/";
+} else {
+    // Inicializar o sistema
+    (async function() {
+        try {
+            await showEstudioLawSplash();
+            await delay(3000);
+            await hideEstudioLawSplash();
+            
+            // Mostrar painel de autenticação
+            showAuthPanel();
+            
+        } catch (error) {
+            console.error('Erro na inicialização:', error);
+            alert('Erro ao inicializar o Estúdio LAW. Verifique o console para mais detalhes.');
+        }
+    })();
+}
+
+// Função global para autenticação (precisa estar no escopo global)
+window.authenticateLaw = authenticateLaw;
