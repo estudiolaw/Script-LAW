@@ -1,5 +1,5 @@
 (() => {
-  const ver = "LAW V1.0.0";
+  const ver = "Estúdio LAW V1.0.0";
   const isDev = false;
 
   const device = {
