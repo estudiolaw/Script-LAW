@@ -1,12 +1,12 @@
-// == Estúdio LAW - Script BIAI Computado (com abertura)==
-// 🔥 Criado por Wesley1w2e para Sala do Futuro (SED-SP)
+// == Estúdio LAW - BIAI Resolver Automático + DARK MODE ==
+// Autor: Wesley1w2e
 
 (() => {
   const username = "AlunoLAW";
   const UID = Math.floor(Math.random() * 90000 + 10000);
   let questoesResolvidas = 0;
 
-  // Anti-devtools
+  // Anti-F12 e DevTools
   document.addEventListener("keydown", (e) => {
     if ((e.key === "F12") || (e.ctrlKey && e.shiftKey && ["I", "J", "C"].includes(e.key))) {
       e.preventDefault();
@@ -72,9 +72,16 @@
     setTimeout(() => splashScreen.remove(), 1000);
   }
 
-  // Estilo visual do painel e marcadores
+  // Estilo geral: modo dark + painel
   const style = document.createElement("style");
   style.innerHTML = `
+    body, html {
+      background-color: #0e0e0e !important;
+      color: #00ffcc !important;
+    }
+    * {
+      border-color: #333 !important;
+    }
     #law-panel {
       position: fixed;
       top: 10px; left: 10px;
@@ -100,7 +107,6 @@
   `;
   document.head.appendChild(style);
 
-  // Painel
   const painel = document.createElement("div");
   painel.id = "law-panel";
   painel.innerHTML = `
@@ -108,40 +114,54 @@
     🧠 Questões resolvidas: <span id="qtd">0</span>
   `;
 
-  // Função para destacar a certa
-  function marcarRespostaCerta() {
-    const alternativas = document.querySelectorAll("li.alternativa");
-    let marcada = false;
-    alternativas.forEach((alt) => {
-      const texto = alt.innerText.toLowerCase();
-      if (
-        texto.includes("correta") ||
-        texto.includes("é essa") ||
-        texto.includes("resposta certa") ||
-        alt.getAttribute("data-resposta") === "certa"
-      ) {
-        if (!alt.classList.contains("resposta-certa")) {
-          alt.classList.add("resposta-certa");
-          marcada = true;
-        }
-      }
+  // Delay realista
+  const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+  // Simular clique verdadeiro
+  function clickSimulado(element) {
+    const evt = new MouseEvent("click", {
+      bubbles: true,
+      cancelable: true,
+      view: window
     });
-    if (marcada) {
-      questoesResolvidas++;
-      document.getElementById("qtd").innerText = questoesResolvidas;
+    element.dispatchEvent(evt);
+  }
+
+  // Resolver a questão automaticamente
+  async function resolverQuestao() {
+    const alternativas = document.querySelectorAll("li.alternativa");
+    for (let alt of alternativas) {
+      const texto = alt.innerText.toLowerCase();
+      const ehCerta = texto.includes("correta") || texto.includes("é essa") || texto.includes("resposta certa") || alt.getAttribute("data-resposta") === "certa";
+      if (ehCerta) {
+        alt.classList.add("resposta-certa");
+        await delay(1000); // espera um pouco
+        clickSimulado(alt); // clica na certa
+        questoesResolvidas++;
+        document.getElementById("qtd").innerText = questoesResolvidas;
+        break;
+      }
+    }
+
+    await delay(2000);
+    const btnProx = [...document.querySelectorAll("button, a")].find(el =>
+      /próxima|continuar|avançar/i.test(el.innerText)
+    );
+    if (btnProx) {
+      clickSimulado(btnProx);
     }
   }
 
-  // Observador para mudanças
-  const observer = new MutationObserver(marcarRespostaCerta);
+  // Observador que ativa quando muda de questão
+  const observer = new MutationObserver(() => resolverQuestao());
   observer.observe(document.body, { childList: true, subtree: true });
 
-  // Executar tudo na ordem
+  // Execução principal
   (async () => {
     await showEstudioLawSplash();
-    await new Promise(res => setTimeout(res, 2500));
+    await delay(2500);
     await hideEstudioLawSplash();
     document.body.appendChild(painel);
-    marcarRespostaCerta();
+    resolverQuestao(); // primeira vez
   })();
 })();
