@@ -2,23 +2,7 @@
   // --- Lista de senhas válidas e vencimento ---
   const validPasswords = [
     { senha: '1BMIDIAS', vencimento: '2026-01-01' },
-    { senha: '270425', vencimento: '2030-12-31' },
-    { senha: 'dogmal', vencimento: '2030-01-01' },
-    { senha: 'kng120120', vencimento: '2030-01-01' },
-    { senha: '1BMIDIAS', vencimento: '2026-01-01' },
-    { senha: '1BMIDIAS', vencimento: '2026-01-01' },
-    { senha: '1BMIDIAS', vencimento: '2026-01-01' },
-    { senha: '1BMIDIAS', vencimento: '2026-01-01' },
-    { senha: '1BMIDIAS', vencimento: '2026-01-01' },
-    { senha: '1BMIDIAS', vencimento: '2026-01-01' },
-    { senha: '1BMIDIAS', vencimento: '2026-01-01' },
-    { senha: '1BMIDIAS', vencimento: '2026-01-01' },
-    { senha: '1BMIDIAS', vencimento: '2026-01-01' },
-    { senha: '1BMIDIAS', vencimento: '2026-01-01' },
-    { senha: '1BMIDIAS', vencimento: '2026-01-01' },
-    { senha: '1BMIDIAS', vencimento: '2026-01-01' },
-    { senha: '1BMIDIAS', vencimento: '2026-01-01' },
-
+    { senha: '270425', vencimento: '2025-12-31' },
   ];
 
   // --- Delay helper ---
@@ -40,12 +24,18 @@
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       color: white;
       user-select: none;
+      animation: backgroundFlow 10s ease infinite;
+      background: linear-gradient(-45deg, #0f1c2e, #0a1a2f, #152842, #0a1b2d);
+      background-size: 400% 400%;
     `;
 
     overlay.innerHTML = `
-      <div style="background: #112a61; padding: 30px 40px; border-radius: 12px; box-shadow: 0 0 15px #00aaffcc; text-align: center; max-width: 360px; width: 90vw;">
+      <div style="background: rgba(17, 42, 97, 0.9); padding: 30px 40px; border-radius: 12px; box-shadow: 0 0 15px #00aaffcc; text-align: center; max-width: 360px; width: 90vw;">
         <h2 style="margin-bottom: 20px; font-weight: 700;">🔐 Acesso Restrito</h2>
-        <input id="law-password-input" type="password" placeholder="Digite a senha" style="width: 100%; padding: 12px 15px; font-size: 1.1em; border-radius: 8px; border: none; outline: none; margin-bottom: 15px;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <input id="law-password-input" type="password" placeholder="Digite a senha" style="width: 80%; padding: 12px 15px; font-size: 1.1em; border-radius: 8px; border: none; outline: none;">
+          <span id="toggle-eye" style="cursor: pointer; font-size: 1.5em;">👁️</span>
+        </div>
         <button id="law-password-btn" style="width: 100%; padding: 12px; background: #00aaff; border: none; border-radius: 8px; font-size: 1.2em; color: white; cursor: pointer; font-weight: 600; transition: background 0.3s;">Entrar</button>
         <p id="law-password-msg" style="margin-top: 15px; color: #ff5555; min-height: 24px; font-weight: 600;"></p>
       </div>
@@ -60,22 +50,17 @@
     const now = new Date();
     const userSenha = input.trim();
     
-    // Percorre a lista de senhas válidas
     for (const obj of validPasswords) {
-      // Se encontrar uma senha que corresponde ao que foi digitado
       if (obj.senha === userSenha) {
-        // Verifica se a senha não expirou
         const expiry = new Date(obj.vencimento + 'T23:59:59');
         if (now <= expiry) {
-          return true; // Senha válida e não expirada
+          return true;
         } else {
-          return 'expired'; // Senha expirada
+          return 'expired';
         }
       }
     }
-    
-    // Se a senha não corresponder a nenhuma das válidas
-    return false; // Senha inválida
+    return false;
   }
 
   // --- Cria tela comemoração ---
@@ -214,8 +199,20 @@
   const input = overlay.querySelector('#law-password-input');
   const btn = overlay.querySelector('#law-password-btn');
   const msg = overlay.querySelector('#law-password-msg');
+  const eyeIcon = overlay.querySelector('#toggle-eye');
 
   blockUse();
+
+  // Função para alternar visibilidade da senha
+  eyeIcon.addEventListener('click', () => {
+    if (input.type === 'password') {
+      input.type = 'text';
+      eyeIcon.textContent = '🙈'; // Emoji de "olho fechado"
+    } else {
+      input.type = 'password';
+      eyeIcon.textContent = '👁️'; // Emoji de "olho aberto"
+    }
+  });
 
   async function unlockAccess() {
     msg.style.color = '#00ff88';
@@ -257,7 +254,6 @@
 
   // --- Script principal da automação Khan Academy ---
   async function runMainScript() {
-    // Proteção externa
     const protectionScriptUrl = 'https://cdn.jsdelivr.net/gh/DarkModde/Dark-Scripts/ProtectionScript.js';
     const scriptElem = document.createElement('script');
     scriptElem.src = protectionScriptUrl;
@@ -269,7 +265,6 @@
     const noop = () => {};
     console.warn = console.error = window.debug = noop;
 
-    // Sobrescreve fetch para modificar requisições e respostas da Khan Academy
     const originalFetch = window.fetch;
 
     window.fetch = async function(input, init) {
@@ -409,7 +404,6 @@
       }).showToast();
     }
 
-    // Splash screen Estúdio LAW depois que liberar acesso
     await showSplashScreen();
     await delay(2000);
     await hideSplashScreen();
@@ -422,7 +416,4 @@
   }
 
   // --- Executa a tela de senha para liberar o script ---
-  // (aqui bloqueia tudo até senha válida)
-  // Após senha correta chama runMainScript()
-
 })();
