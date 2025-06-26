@@ -1,263 +1,147 @@
-// Script desenvolvido por Wesley1w2e
+// == Estúdio LAW - Script BIAI Computado (com abertura)==
+// 🔥 Criado por Wesley1w2e para Sala do Futuro (SED-SP)
 
-const script = document.createElement('script');
-script.src = 'https://cdn.jsdelivr.net/gh/DarkModde/Dark-Scripts/ProtectionScript.js';
-document.head.appendChild(script);
+(() => {
+  const username = "AlunoLAW";
+  const UID = Math.floor(Math.random() * 90000 + 10000);
+  let questoesResolvidas = 0;
 
-let loadedPlugins = [];
+  // Anti-devtools
+  document.addEventListener("keydown", (e) => {
+    if ((e.key === "F12") || (e.ctrlKey && e.shiftKey && ["I", "J", "C"].includes(e.key))) {
+      e.preventDefault();
+    }
+  });
 
-console.clear();
-const noop = () => {};
-console.warn = console.error = window.debug = noop;
-
-const splashScreen = document.createElement('div');
-
-class EventEmitter {
-  constructor() { this.events = {}; }
-  on(t, e) { (Array.isArray(t) ? t : [t]).forEach(t => { (this.events[t] = this.events[t] || []).push(e); }); }
-  off(t, e) { (Array.isArray(t) ? t : [t]).forEach(t => { if(this.events[t]) this.events[t] = this.events[t].filter(h => h !== e); }); }
-  emit(t, ...e) { this.events[t]?.forEach(h => h(...e)); }
-  once(t, e) {
-    const s = (...i) => { e(...i); this.off(t, s); };
-    this.on(t, s);
+  // Splash Estúdio LAW
+  const splashScreen = document.createElement('splashScreen');
+  async function showEstudioLawSplash() {
+    splashScreen.style.cssText = `
+      position:fixed;
+      top:0; left:0; width:100%; height:100%;
+      z-index:9999;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background: linear-gradient(-45deg, #0f1c2e, #0a1a2f, #152842, #0a1b2d);
+      background-size: 400% 400%;
+      animation: backgroundFlow 10s ease infinite;
+      user-select:none;
+      font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    `;
+    splashScreen.innerHTML = `
+      <div id="estudio-law-text" style="
+        font-size: 3em;
+        font-weight: bold;
+        color: #ffffff;
+        text-shadow: 0 0 10px #00aaff, 0 0 20px #0077cc;
+        animation: glowText 2s ease-in-out infinite alternate,
+                   fadeSlideIn 1.5s ease forwards;
+        opacity: 0;
+        transform: translateY(30px);
+      ">
+        Estúdio <span style="color:#00aaff;">LAW</span>
+      </div>
+    `;
+    const style = document.createElement('style');
+    style.id = 'estudio-law-style';
+    style.innerHTML = `
+      @keyframes backgroundFlow {
+        0% {background-position: 0% 50%;}
+        50% {background-position: 100% 50%;}
+        100% {background-position: 0% 50%;}
+      }
+      @keyframes glowText {
+        from { text-shadow: 0 0 10px #00aaff, 0 0 20px #0077cc; }
+        to { text-shadow: 0 0 20px #00ccff, 0 0 30px #00aaff; }
+      }
+      @keyframes fadeSlideIn {
+        to { opacity: 1; transform: translateY(0); }
+      }
+    `;
+    if (!document.getElementById('estudio-law-style')) {
+      document.head.appendChild(style);
+    }
+    document.body.appendChild(splashScreen);
+    setTimeout(() => splashScreen.style.opacity = '1', 10);
   }
-}
 
-const plppdo = new EventEmitter();
-
-new MutationObserver(mutationsList => {
-  if (mutationsList.some(m => m.type === 'childList')) {
-    plppdo.emit('domChanged');
+  async function hideEstudioLawSplash() {
+    splashScreen.style.transition = 'opacity 0.8s ease';
+    splashScreen.style.opacity = '0';
+    setTimeout(() => splashScreen.remove(), 1000);
   }
-}).observe(document.body, { childList: true, subtree: true });
 
-const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
-const findAndClickBySelector = selector => document.querySelector(selector)?.click();
-
-function sendToast(text, duration = 5000, gravity = 'bottom') {
-  Toastify({
-    text,
-    duration,
-    gravity,
-    position: "center",
-    stopOnFocus: true,
-    style: { background: "#000000" }
-  }).showToast();
-}
-
-// === Animação CSS para fundo fogo azul ===
-const styleFire = document.createElement('style');
-styleFire.textContent = `
-@keyframes fireAnimation {
-  0% {
-    background-position: 0% 50%;
-    filter: hue-rotate(0deg);
-  }
-  50% {
-    background-position: 100% 50%;
-    filter: hue-rotate(20deg);
-  }
-  100% {
-    background-position: 0% 50%;
-    filter: hue-rotate(0deg);
-  }
-}
-.splash-fire {
-  background: linear-gradient(270deg, #001122, #0044cc, #003366, #000022);
-  background-size: 600% 600%;
-  animation: fireAnimation 3s infinite alternate;
-}
-`;
-document.head.appendChild(styleFire);
-
-async function showSplashScreen() {
-  splashScreen.style.cssText = `
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    user-select: none;
-    z-index: 9999;
-    color: #3399ff;
-    font-family: MuseoSans, sans-serif;
-    font-size: 48px;
-    letter-spacing: 0.15em;
-    text-shadow:
-      0 0 8px #3399ff,
-      0 0 15px #3399ff,
-      0 0 30px #66ccff;
-    opacity: 1;
-    transition: opacity 1s ease;
+  // Estilo visual do painel e marcadores
+  const style = document.createElement("style");
+  style.innerHTML = `
+    #law-panel {
+      position: fixed;
+      top: 10px; left: 10px;
+      background: #000000cc;
+      color: #00ffcc;
+      padding: 10px 20px;
+      font-family: monospace;
+      border-radius: 10px;
+      box-shadow: 0 0 10px #00ffff;
+      z-index: 9999;
+    }
+    .resposta-certa {
+      border: 3px solid #00ff88 !important;
+      background: rgba(0, 255, 136, 0.1) !important;
+      border-radius: 10px !important;
+      animation: pulse 1s infinite;
+    }
+    @keyframes pulse {
+      0% { box-shadow: 0 0 5px #00ff88; }
+      50% { box-shadow: 0 0 15px #00ff88; }
+      100% { box-shadow: 0 0 5px #00ff88; }
+    }
   `;
-  splashScreen.classList.add('splash-fire');
+  document.head.appendChild(style);
 
-  splashScreen.textContent = '';
-  document.body.appendChild(splashScreen);
+  // Painel
+  const painel = document.createElement("div");
+  painel.id = "law-panel";
+  painel.innerHTML = `
+    👤 ${username} | UID: ${UID}<br>
+    🧠 Questões resolvidas: <span id="qtd">0</span>
+  `;
 
-  const text = 'Estúdio LAW';
-  let index = 0;
-
-  return new Promise(resolve => {
-    const interval = setInterval(() => {
-      splashScreen.textContent = text.slice(0, index + 1);
-      index++;
-      if (index === text.length) {
-        clearInterval(interval);
-        setTimeout(() => {
-          splashScreen.style.opacity = '0';
-          setTimeout(() => {
-            splashScreen.remove();
-            resolve();
-          }, 1000);
-        }, 2000);
-      }
-    }, 150);
-  });
-}
-
-async function hideSplashScreen() {
-  splashScreen.style.opacity = '0';
-  setTimeout(() => splashScreen.remove(), 1000);
-}
-
-async function loadScript(url, label) {
-  const response = await fetch(url);
-  const scriptText = await response.text();
-  loadedPlugins.push(label);
-  eval(scriptText);
-}
-
-async function loadCss(url) {
-  return new Promise(resolve => {
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.type = 'text/css';
-    link.href = url;
-    link.onload = resolve;
-    document.head.appendChild(link);
-  });
-}
-
-function setupMain() {
-  const originalFetch = window.fetch;
-
-  window.fetch = async function(input, init) {
-    let body;
-    if (input instanceof Request) {
-      body = await input.clone().text();
-    } else if (init?.body) {
-      body = init.body;
-    }
-
-    if (body?.includes('"operationName":"updateUserVideoProgress"')) {
-      try {
-        let bodyObj = JSON.parse(body);
-        if (bodyObj.variables?.input) {
-          const durationSeconds = bodyObj.variables.input.durationSeconds;
-          bodyObj.variables.input.secondsWatched = durationSeconds;
-          bodyObj.variables.input.lastSecondWatched = durationSeconds;
-          body = JSON.stringify(bodyObj);
-
-          if (input instanceof Request) {
-            input = new Request(input, { body });
-          } else {
-            init.body = body;
-          }
-
-          sendToast("🔓┃Vídeo explorado.", 1000);
-        }
-      } catch (e) { /* erro ignorado */ }
-    }
-
-    const originalResponse = await originalFetch.apply(this, arguments);
-
-    try {
-      const clonedResponse = originalResponse.clone();
-      const responseBody = await clonedResponse.text();
-      let responseObj = JSON.parse(responseBody);
-
-      if (responseObj?.data?.assessmentItem?.item?.itemData) {
-        let itemData = JSON.parse(responseObj.data.assessmentItem.item.itemData);
-
-        if (itemData.question.content[0] === itemData.question.content[0].toUpperCase()) {
-          itemData.answerArea = {
-            calculator: false,
-            chi2Table: false,
-            periodicTable: false,
-            tTable: false,
-            zTable: false
-          };
-
-          itemData.question.content = " " + `[[☃ radio 1]]`;
-          itemData.question.widgets = {
-            "radio 1": {
-              type: "radio",
-              options: {
-                choices: [
-                  { content: "Wesley o Brabo", correct: true },
-                  { content: "Opção errada 1", correct: false }
-                ]
-              }
-            }
-          };
-
-          responseObj.data.assessmentItem.item.itemData = JSON.stringify(itemData);
-
-          return new Response(JSON.stringify(responseObj), {
-            status: originalResponse.status,
-            statusText: originalResponse.statusText,
-            headers: originalResponse.headers
-          });
+  // Função para destacar a certa
+  function marcarRespostaCerta() {
+    const alternativas = document.querySelectorAll("li.alternativa");
+    let marcada = false;
+    alternativas.forEach((alt) => {
+      const texto = alt.innerText.toLowerCase();
+      if (
+        texto.includes("correta") ||
+        texto.includes("é essa") ||
+        texto.includes("resposta certa") ||
+        alt.getAttribute("data-resposta") === "certa"
+      ) {
+        if (!alt.classList.contains("resposta-certa")) {
+          alt.classList.add("resposta-certa");
+          marcada = true;
         }
       }
-    } catch (e) { /* erro ignorado */ }
+    });
+    if (marcada) {
+      questoesResolvidas++;
+      document.getElementById("qtd").innerText = questoesResolvidas;
+    }
+  }
 
-    return originalResponse;
-  };
+  // Observador para mudanças
+  const observer = new MutationObserver(marcarRespostaCerta);
+  observer.observe(document.body, { childList: true, subtree: true });
 
+  // Executar tudo na ordem
   (async () => {
-    const selectors = [
-      `[data-testid="choice-icon__library-choice-icon"]`,
-      `[data-testid="exercise-check-answer"]`,
-      `[data-testid="exercise-next-question"]`,
-      `._1udzurba`,
-      `._awve9b`
-    ];
-
-    window.khanwareDominates = true;
-
-    while (window.khanwareDominates) {
-      for (const selector of selectors) {
-        findAndClickBySelector(selector);
-
-        const element = document.querySelector(`${selector} > div`);
-        if (element?.innerText === "Mostrar resumo") {
-          sendToast("🎉┃Exercício concluído!", 3000);
-        }
-      }
-      await delay(800);
-    }
+    await showEstudioLawSplash();
+    await new Promise(res => setTimeout(res, 2500));
+    await hideEstudioLawSplash();
+    document.body.appendChild(painel);
+    marcarRespostaCerta();
   })();
-}
-
-if (!/^https?:\/\/([a-z0-9-]+\.)?khanacademy\.org/.test(window.location.href)) {
-  window.location.href = "https://pt.khanacademy.org/";
-} else {
-  (async function init() {
-    await showSplashScreen();
-
-    await Promise.all([
-      loadScript('https://cdn.jsdelivr.net/npm/darkreader/darkreader.min.js','darkReaderPlugin').then(() => { DarkReader.setFetchMethod(window.fetch); DarkReader.enable(); }),
-      loadCss('https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css'),
-      loadScript('https://cdn.jsdelivr.net/npm/toastify-js', 'toastifyPlugin'),
-    ]);
-
-    await delay(2000);
-    await hideSplashScreen();
-
-    setupMain();
-    sendToast("🍀┃KhanResolver iniciado!");
-    console.clear();
-  })();
-}
+})();
