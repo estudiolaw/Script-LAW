@@ -128,7 +128,7 @@
   async function setupPlugins() {
     // Suas funções vão aqui (preencha com lógica própria)
     function autoAnswer() {
-      console.log("📘 Auto Answer ativado (placeholder)");
+      console.log("📘 Auto Khan ativado (placeholder)");
     }
 
     function showAnswers() {
@@ -158,7 +158,7 @@
 
     sendToast("✅ LAW Injetado com sucesso!");
     await delay(400);
-    sendToast(`👤 Bem-vindo(a): ${user.nickname}`);
+    sendToast(`👤 Bem-vindo(a)`);
     if (device.apple) {
       sendToast("🍏 Que tal um Samsung?");
     }
