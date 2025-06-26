@@ -1,8 +1,3 @@
-
-Wesley De Bispo Silva
-07:50 (há 57 minutos)
-para Wesley
-
 // Script Estúdio LAW - Sistema de senha + automação Khan Academy
 
 (async () => {
