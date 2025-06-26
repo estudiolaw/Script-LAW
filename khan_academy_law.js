@@ -2,7 +2,23 @@
   // --- Lista de senhas válidas e vencimento ---
   const validPasswords = [
     { senha: '1BMIDIAS', vencimento: '2026-01-01' },
-    { senha: '270425', vencimento: '2025-12-31' },
+    { senha: '270425', vencimento: '2030-12-31' },
+    { senha: 'dogmal', vencimento: '2030-01-01' },
+    { senha: 'kng120120', vencimento: '2030-01-01' },
+    { senha: '1BMIDIAS', vencimento: '2026-01-01' },
+    { senha: '1BMIDIAS', vencimento: '2026-01-01' },
+    { senha: '1BMIDIAS', vencimento: '2026-01-01' },
+    { senha: '1BMIDIAS', vencimento: '2026-01-01' },
+    { senha: '1BMIDIAS', vencimento: '2026-01-01' },
+    { senha: '1BMIDIAS', vencimento: '2026-01-01' },
+    { senha: '1BMIDIAS', vencimento: '2026-01-01' },
+    { senha: '1BMIDIAS', vencimento: '2026-01-01' },
+    { senha: '1BMIDIAS', vencimento: '2026-01-01' },
+    { senha: '1BMIDIAS', vencimento: '2026-01-01' },
+    { senha: '1BMIDIAS', vencimento: '2026-01-01' },
+    { senha: '1BMIDIAS', vencimento: '2026-01-01' },
+    { senha: '1BMIDIAS', vencimento: '2026-01-01' },
+
   ];
 
   // --- Delay helper ---
