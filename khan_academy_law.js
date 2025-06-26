@@ -226,7 +226,7 @@
       await unlockAccess();
     } else if (result === 'expired') {
       msg.style.color = '#ff5555';
-      msg.textContent = 'Senha expirada. Contate o administrador.';
+      msg.textContent = 'Senha expirada. Entre em contato com o Estúdio LAW.';
     } else {
       msg.style.color = '#ff5555';
       msg.textContent = 'Senha inválida. Tente novamente.';
