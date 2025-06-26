@@ -1,368 +1,379 @@
-(() => {
-  const ver = "Estúdio LAW V1.1.0";
-  const isDev = false;
+const ver = "LAW v1.0.0";
+let isDev = false;
 
-  // ======= Configurações Senhas + Validade ===========
-  // Senhas válidas e suas datas de expiração (aaaa-mm-dd)
-  const validPasswords = [
-    { pwd: "law1234", expires: "2025-12-31" },
-    { pwd: "khanpass1", expires: "2025-11-30" },
-    { pwd: "lawsecure2", expires: "2025-10-15" },
-    { pwd: "autoanswer3", expires: "2025-09-30" },
-    { pwd: "scriptfour", expires: "2025-12-01" },
-    { pwd: "fivelaw55", expires: "2025-11-15" },
-    { pwd: "sixthpass6", expires: "2025-12-20" },
-    { pwd: "seventhmagic", expires: "2025-10-10" },
-    { pwd: "eightlaw88", expires: "2025-12-05" },
-    { pwd: "finalpass9", expires: "2025-11-22" },
-  ];
+const repoPath = `https://raw.githubusercontent.com/EstudioLAW/LAW-Academy-Tools/refs/heads/${isDev ? "dev/" : "main/"}/`;
 
-  // ======= Variáveis globais =======
-  let user = { username: "Username", nickname: "Nickname", UID: "00000" };
-  let splashScreen = null;
-  let isAuthorized = false;
-  let loadedPlugins = [];
-
-  const device = {
+let device = {
     mobile: /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Windows Phone|Mobile|Tablet|Kindle|Silk|PlayBook|BB10/i.test(navigator.userAgent),
-    apple: /iPhone|iPad|iPod|Macintosh|Mac OS X/i.test(navigator.userAgent),
-  };
+    apple: /iPhone|iPad|iPod|Macintosh|Mac OS X/i.test(navigator.userAgent)
+};
 
-  const delay = ms => new Promise(res => setTimeout(res, ms));
+/* User Data - Estúdio LAW */
+let user = {
+    username: "LAW_User",
+    nickname: "Usuário LAW",
+    UID: 0,
+    lawVersion: ver
+}
 
-  // ========= Criação e exibição da splash animada ===========
-  async function showEstudioLawSplash() {
-    splashScreen = document.createElement('div');
-    splashScreen.style.cssText = `
-      position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
-      z-index: 999999;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: linear-gradient(-45deg, #0f1c2e, #0a1a2f, #152842, #0a1b2d);
-      background-size: 400% 400%;
-      animation: backgroundFlow 12s ease infinite;
-      user-select: none;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      opacity: 0;
-      transition: opacity 0.8s ease;
-    `;
+let loadedLAWModules = [];
 
-    splashScreen.innerHTML = `
-      <div id="estudio-law-text" style="
-        font-size: 4em;
-        font-weight: 900;
-        color: #ffffff;
-        text-shadow: 0 0 15px #00aaff, 0 0 30px #0077cc;
-        animation: glowText 2.5s ease-in-out infinite alternate,
-                   fadeSlideIn 1.5s ease forwards;
-        opacity: 0;
-        transform: translateY(30px);
-      ">
-        Estúdio <span style="color:#00aaff;">LAW</span>
-      </div>
-    `;
+/* LAW Elements */
+const lawUnloader = document.createElement('lawUnloader');
+const lawDropdownMenu = document.createElement('lawDropDownMenu');
+const lawWatermark = document.createElement('lawWatermark');
+const lawStatsPanel = document.createElement('lawStatsPanel');
+const lawSplashScreen = document.createElement('lawSplashScreen');
 
-    if (!document.getElementById('estudio-law-style')) {
-      const style = document.createElement('style');
-      style.id = 'estudio-law-style';
-      style.textContent = `
-        @keyframes backgroundFlow {
-          0% {background-position: 0% 50%;}
-          50% {background-position: 100% 50%;}
-          100% {background-position: 0% 50%;}
+/* LAW Features */
+window.lawFeatures = {
+    smartAnswers: true,
+    videoBooster: true,
+    showSolutions: false,
+    autoComplete: false,
+    lawBanner: true,
+    nextSuggestion: false,
+    repeatMode: false,
+    timeOptimizer: false,
+    lawTheme: true
+};
+
+window.lawConfigs = {
+    autoDelay: 3,
+    customUser: "",
+    customAvatar: "",
+    lawColor: "#00ff41", // Verde matrix style
+    lawSecondary: "#003311"
+};
+
+/* LAW Security System */
+document.addEventListener('contextmenu', (e) => !window.lawDebugMode && e.preventDefault());
+document.addEventListener('keydown', (e) => { 
+    if (!window.lawDebugMode && (e.key === 'F12' || (e.ctrlKey && e.shiftKey && ['I', 'C', 'J'].includes(e.key)))) { 
+        e.preventDefault(); 
+        lawToast("🔒 LAW Security: Inspeção bloqueada", 2000);
+    } 
+});
+
+console.log(Object.defineProperties(new Error, { 
+    toString: {value() {(new Error).stack.includes('toString@') && location.reload();}}, 
+    message: {get() {location.reload();}} 
+}));
+
+/* LAW Styles */
+document.head.appendChild(Object.assign(document.createElement("style"), {
+    innerHTML: `
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+        @font-face {
+            font-family: 'LAW-Font';
+            src: url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
         }
-        @keyframes glowText {
-          from { text-shadow: 0 0 15px #00aaff, 0 0 30px #0077cc; }
-          to { text-shadow: 0 0 30px #00ccff, 0 0 45px #00aaff; }
+        
+        .law-glow {
+            text-shadow: 0 0 10px #00ff41, 0 0 20px #00ff41, 0 0 30px #00ff41;
         }
-        @keyframes fadeSlideIn {
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
+        
+        .law-border {
+            border: 2px solid #00ff41;
+            box-shadow: 0 0 15px rgba(0, 255, 65, 0.3);
         }
-      `;
-      document.head.appendChild(style);
+    `
+}));
+
+document.head.appendChild(Object.assign(document.createElement('style'), {
+    innerHTML: `
+        ::-webkit-scrollbar { width: 12px; } 
+        ::-webkit-scrollbar-track { background: #001a00; } 
+        ::-webkit-scrollbar-thumb { 
+            background: linear-gradient(45deg, #00ff41, #003311); 
+            border-radius: 10px; 
+        } 
+        ::-webkit-scrollbar-thumb:hover { background: #00ff41; }
+    `
+}));
+
+// LAW Favicon
+document.querySelector("link[rel~='icon']").href = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">⚖️</text></svg>';
+
+/* LAW Event System */
+class LAWEventEmitter {
+    constructor() {
+        this.events = {};
+        this.lawId = "LAW_" + Date.now();
     }
-
-    document.body.appendChild(splashScreen);
-    await delay(50);
-    splashScreen.style.opacity = '1';
-  }
-
-  // ========= Ocultar splash =========
-  async function hideEstudioLawSplash() {
-    if (!splashScreen) return;
-    splashScreen.style.opacity = '0';
-    await delay(1000);
-    splashScreen.remove();
-    splashScreen = null;
-  }
-
-  // ========= Função para enviar toast com Toastify =========
-  function sendToast(text, duration = 3500, gravity = 'bottom') {
-    if (typeof Toastify !== "undefined") {
-      Toastify({
-        text,
-        duration,
-        gravity,
-        position: "center",
-        stopOnFocus: true,
-        style: { background: "#1e293b", color: "#fff", fontWeight: "bold" },
-      }).showToast();
-    } else {
-      alert(text);
+    
+    on(event, callback) {
+        if (typeof event === "string") event = [event];
+        event.forEach(e => {
+            this.events[e] || (this.events[e] = []);
+            this.events[e].push(callback);
+        });
     }
-  }
-
-  // ========= Bloqueio de clique direito e F12 =========
-  function setupSecurity() {
-    document.addEventListener('contextmenu', e => e.preventDefault());
-    document.addEventListener('keydown', e => {
-      if (
-        e.key === 'F12' ||
-        (e.ctrlKey && e.shiftKey && ['I', 'C', 'J'].includes(e.key.toUpperCase()))
-      ) {
-        e.preventDefault();
-        sendToast("🚫 Ferramentas de desenvolvedor bloqueadas", 2000);
-      }
-    });
-  }
-
-  // ========= Valida senha e data de expiração =========
-  function validatePassword(inputPwd) {
-    const now = new Date();
-    for (const entry of validPasswords) {
-      if (entry.pwd === inputPwd) {
-        const expiry = new Date(entry.expires + "T23:59:59");
-        if (now <= expiry) {
-          return true;
-        }
-        return false; // Expirou
-      }
+    
+    off(event, callback) {
+        if (typeof event === "string") event = [event];
+        event.forEach(e => {
+            this.events[e] && (this.events[e] = this.events[e].filter(c => c !== callback));
+        });
     }
-    return false; // Não encontrada
-  }
+    
+    emit(event, ...args) {
+        this.events[event] && this.events[event].forEach(callback => {
+            callback(...args);
+        });
+    }
+    
+    once(event, callback) {
+        if (typeof event === "string") event = [event];
+        let wrapper = (...args) => {
+            callback(...args);
+            this.off(event, wrapper);
+        };
+        this.on(event, wrapper);
+    }
+}
 
-  // ========= Tela de login por senha ==========
-  async function showPasswordPrompt() {
-    return new Promise((resolve) => {
-      const overlay = document.createElement('div');
-      overlay.style.cssText = `
-        position: fixed; inset: 0;
-        background: rgba(0,0,0,0.8);
+const lawSystem = new LAWEventEmitter();
+
+new MutationObserver((mutationsList) => { 
+    for (let mutation of mutationsList) 
+        if (mutation.type === 'childList') 
+            lawSystem.emit('domChanged'); 
+}).observe(document.body, { childList: true, subtree: true });
+
+/* LAW Functions */
+window.lawDebug = function(text) { 
+    console.log(`%c[LAW DEBUG] ${text}`, 'color: #00ff41; font-weight: bold;'); 
+};
+
+const lawDelay = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+const lawPlayAudio = url => { 
+    const audio = new Audio(url); 
+    audio.play(); 
+    lawDebug(`🔊 LAW Audio: ${url}`); 
+};
+
+const lawClickElement = selector => { 
+    const element = document.querySelector(selector); 
+    if (element) { 
+        element.click(); 
+        lawToast(`⚡ LAW: Elemento ${selector} ativado`, 1000); 
+    } 
+};
+
+function lawToast(text, duration = 5000, gravity = 'bottom') { 
+    Toastify({ 
+        text: `⚖️ ${text}`, 
+        duration: duration, 
+        gravity: gravity, 
+        position: "center", 
+        stopOnFocus: true, 
+        style: { 
+            background: "linear-gradient(45deg, #001a00, #003311)", 
+            border: "1px solid #00ff41",
+            color: "#00ff41",
+            fontFamily: "Orbitron, monospace",
+            fontWeight: "bold"
+        } 
+    }).showToast(); 
+    lawDebug(text); 
+}
+
+async function showLAWSplashScreen() { 
+    lawSplashScreen.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(45deg, #000000, #001a00);
         display: flex;
-        justify-content: center;
         align-items: center;
-        z-index: 1000000;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      `;
-
-      const box = document.createElement('div');
-      box.style.cssText = `
-        background: #0a1a2f;
-        padding: 30px 40px;
-        border-radius: 12px;
-        box-shadow: 0 0 15px #00aaff;
-        width: 320px;
-        color: white;
+        justify-content: center;
+        z-index: 9999;
+        opacity: 0;
+        transition: opacity 0.8s ease;
+        user-select: none;
+        color: #00ff41;
+        font-family: Orbitron, monospace;
+        font-size: 36px;
         text-align: center;
-      `;
+        font-weight: 900;
+    `; 
+    
+    lawSplashScreen.innerHTML = `
+        <div style="text-align: center;">
+            <div style="font-size: 48px; margin-bottom: 20px;">⚖️</div>
+            <div class="law-glow">ESTÚDIO LAW</div>
+            <div style="font-size: 16px; margin-top: 10px; opacity: 0.8;">Academy Tools ${ver}</div>
+            <div style="font-size: 12px; margin-top: 20px; opacity: 0.6;">Carregando sistema...</div>
+        </div>
+    `; 
+    
+    document.body.appendChild(lawSplashScreen); 
+    setTimeout(() => lawSplashScreen.style.opacity = '1', 10);
+}
 
-      box.innerHTML = `
-        <h2 style="margin-bottom: 20px; font-weight: 900; color: #00aaff;">Estúdio LAW</h2>
-        <p>Digite a senha para continuar:</p>
-        <input id="law-password" type="password" style="width: 100%; padding: 10px; font-size: 1.1em; border-radius: 5px; border:none; margin-top: 12px;"/>
-        <button id="law-password-btn" style="
-          margin-top: 20px; padding: 10px 20px;
-          background: #00aaff;
-          border: none;
-          border-radius: 8px;
-          font-weight: bold;
-          font-size: 1.1em;
-          color: #fff;
-          cursor: pointer;
-          transition: background 0.3s;
-        ">Entrar</button>
-        <p id="law-password-msg" style="color:#ff5555; margin-top: 15px; min-height: 18px;"></p>
-      `;
+async function hideLAWSplashScreen() { 
+    lawSplashScreen.style.opacity = '0'; 
+    setTimeout(() => lawSplashScreen.remove(), 1000); 
+}
 
-      overlay.appendChild(box);
-      document.body.appendChild(overlay);
-
-      function cleanUp() {
-        document.body.removeChild(overlay);
-      }
-
-      const input = box.querySelector('#law-password');
-      const btn = box.querySelector('#law-password-btn');
-      const msg = box.querySelector('#law-password-msg');
-
-      btn.addEventListener('click', () => {
-        const val = input.value.trim();
-        if (!val) {
-          msg.textContent = "Digite uma senha válida.";
-          return;
-        }
-        if (!validatePassword(val)) {
-          msg.textContent = "Senha inválida ou expirada.";
-          input.value = "";
-          return;
-        }
-        // Senha ok
-        cleanUp();
-        sendToast("🔓 Senha correta! Bem vindo ao Estúdio LAW.");
-        resolve(true);
-      });
-
-      input.addEventListener('keydown', e => {
-        if (e.key === 'Enter') {
-          btn.click();
-        }
-      });
-    });
-  }
-
-  // ========= Busca o perfil do usuário no Khan Academy =========
-  async function fetchUserProfile() {
-    try {
-      const resp = await fetch(`https://${location.hostname}/api/internal/graphql/getFullUserProfile`, {
-        method: "POST",
-        headers: {
-          "content-type": "application/json",
-          "x-ka-fkey": "1"
-        },
-        body: JSON.stringify({
-          operationName: "getFullUserProfile",
-          variables: {},
-          query: `
-            query getFullUserProfile {
-              user {
-                id
-                username
-                nickname
-              }
-            }
-          `
+async function loadLAWScript(url, label) { 
+    return fetch(url)
+        .then(response => response.text())
+        .then(script => { 
+            loadedLAWModules.push(label); 
+            eval(script); 
+            lawDebug(`📦 LAW Module loaded: ${label}`);
         })
-      });
-      const data = await resp.json();
-      const u = data.data.user;
-      user.username = u.username;
-      user.nickname = u.nickname;
-      user.UID = u.id.slice(-5);
-    } catch (err) {
-      console.error("Erro ao buscar perfil do usuário:", err);
-    }
-  }
+        .catch(error => {
+            lawDebug(`❌ Failed to load LAW module: ${label} - ${error}`);
+        }); 
+}
 
-  // ========= Função de automação de tarefas (auto resposta) =========
-  async function autoAnswerTask() {
-    if (!window.features?.autoAnswer) return;
+async function loadLAWCss(url) { 
+    return new Promise((resolve) => { 
+        const link = document.createElement('link'); 
+        link.rel = 'stylesheet'; 
+        link.type = 'text/css'; 
+        link.href = url; 
+        link.onload = () => resolve(); 
+        document.head.appendChild(link); 
+    }); 
+}
 
-    const choiceSelector = 'input[type="radio"], .perseus-radio-button-input';
-    const nextBtnSelector = '[data-test="next-question-button"], button[aria-label*="Next"], button[aria-label*="Próxima"]';
+/* LAW Visual System */
+function setupLAWInterface() {
+    // Aqui você carregaria seus próprios módulos
+    lawDebug("🎨 Setting up LAW Interface");
+    // loadLAWScript(repoPath+'interface/lawMenu.js', 'LAW Menu');
+    // loadLAWScript(repoPath+'interface/lawPanel.js', 'LAW Panel');
+    // loadLAWScript(repoPath+'interface/lawWidgets.js', 'LAW Widgets');
+}
 
-    const choices = document.querySelectorAll(choiceSelector);
-    if (choices.length === 0) return;
+/* LAW Core Functions */
+function setupLAWCore() {
+    lawDebug("⚙️ Setting up LAW Core");
+    // loadLAWScript(repoPath+'core/smartAnswers.js', 'Smart Answers');
+    // loadLAWScript(repoPath+'core/videoBooster.js', 'Video Booster');
+    // loadLAWScript(repoPath+'core/timeOptimizer.js', 'Time Optimizer');
+    // loadLAWScript(repoPath+'core/lawTheme.js', 'LAW Theme');
+}
 
-    // Tenta marcar a alternativa correta
-    // Aqui vamos marcar a primeira alternativa (pode melhorar)
-    for (const choice of choices) {
-      if (!choice.checked) {
-        choice.click();
-        sendToast("✅ Resposta marcada automaticamente", 1500);
-        break;
-      }
-    }
+/* LAW Injection System */
+if (!/^https?:\/\/([a-z0-9-]+\.)?khanacademy\.org/.test(window.location.href)) { 
+    alert(`❌ Estúdio LAW - Erro de Injeção!\n\nVocê precisa executar o LAW Academy Tools no site do Khan Academy!\n\nRedirecionando...`); 
+    window.location.href = "https://pt.khanacademy.org/"; 
+}
 
-    // Tenta clicar em "Próxima questão"
-    const nextBtn = document.querySelector(nextBtnSelector);
-    if (nextBtn) {
-      await delay(1200);
-      nextBtn.click();
-      sendToast("➡️ Avançando para a próxima questão...", 1500);
-    }
-  }
-
-  // ========= Loop principal dos plugins =========
-  async function pluginLoop() {
-    while (window.features?.autoAnswer) {
-      try {
-        await autoAnswerTask();
-      } catch(e) {
-        console.warn("Erro na automação:", e);
-      }
-      await delay(2000);
-    }
-  }
-
-  // ========= Função para carregar scripts externos =========
-  async function loadScript(url, label = "plugin") {
+// LAW Initialization
+(async function initializeLAW() {
+    lawDebug("🚀 Starting LAW Academy Tools...");
+    
+    showLAWSplashScreen();
+    
+    // Load external dependencies
+    await loadLAWCss('https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css');
+    await loadLAWScript('https://cdn.jsdelivr.net/npm/toastify-js', 'Toastify');
+    
     try {
-      const res = await fetch(url);
-      const code = await res.text();
-      eval(code);
-      loadedPlugins.push(label);
-    } catch (e) {
-      console.warn(`Erro ao carregar ${label}:`, e);
+        // Get user data
+        const response = await fetch(`https://${window.location.hostname}/api/internal/graphql/getFullUserProfile`, {
+            headers: {
+                accept: "*/*",
+                "accept-language": "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7",
+                "content-type": "application/json",
+                "sec-fetch-dest": "empty",
+                "sec-fetch-mode": "cors",
+                "sec-fetch-site": "same-origin"
+            },
+            body: JSON.stringify({
+                "operationName": "getFullUserProfile",
+                "variables": {},
+                "query": "query getFullUserProfile { user { id nickname username } }"
+            }),
+            method: "POST",
+            mode: "cors",
+            credentials: "include"
+        });
+        
+        const data = await response.json();
+        if (data.data && data.data.user) {
+            user = { 
+                nickname: data.data.user.nickname, 
+                username: data.data.user.username, 
+                UID: data.data.user.id.slice(-5),
+                lawVersion: ver
+            };
+        }
+    } catch (error) {
+        lawDebug("⚠️ Could not fetch user data: " + error);
     }
-  }
-
-  // ========= Função para carregar CSS =========
-  async function loadCss(url) {
-    return new Promise((resolve) => {
-      const link = document.createElement('link');
-      link.rel = "stylesheet";
-      link.href = url;
-      link.onload = () => resolve();
-      document.head.appendChild(link);
-    });
-  }
-
-  // ========= Configura recursos globais =========
-  window.features = {
-    autoAnswer: true, // Ativa auto resposta
-  };
-
-  // ========= Função principal de inicialização =========
-  async function initLAW() {
-    if (!location.hostname.includes("khanacademy.org")) {
-      alert("⚠️ Este script só funciona no Khan Academy!");
-      window.location.href = "https://pt.khanacademy.org/";
-      return;
+    
+    lawToast("⚖️ LAW Academy Tools injetado com sucesso!");  
+    lawPlayAudio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEbBj2U2/PEcSEGJ4HA8tiJNwgZaLvt559NEAxQp+PwtmMcBziR1/LNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEbBj2U2/PEcSEGKIDA8tiINwgZaLzs559NEAxQp+PwtmQcBjiO2fLNeSsFJHbH8N2QQAoUXrTp66hVFApGn+DyvmEcBj2U2/PEcSEGKIDA8tiINwgZaLzs559NEAxQp+PwtmQcBjiO2fLNeSsFJHbH8N2QQAoUXrTp66hVFApGn+DyvmEcBj2U2/PEcSEGKIDA8tiINwgZaLzs559NEAxQp+PwtmQcBjiO2fLNeSsFJHbH8N2QQAoUXrTp66hVFApGn+DyvmEcBj2U2/PEcSEGKIDA8tiINwgZaLzs559NEAxQp+PwtmQcBjiO2fLNeSsFJHbH8N2QQAoUXrTp66hVFApGn+DyvmEcBj2U2/PEcSEGKIDA8tiINwgZaLzs559NEAxQp+PwtmQcBjiO2fLNeSsFJHbH8N2QQAoUXrTp66hVFApGn');
+    
+    await lawDelay(1000);
+    
+    lawToast(`⭐ Bem-vindo(a) ao Estúdio LAW: ${user.nickname}`);
+    
+    if (device.apple) { 
+        await lawDelay(500); 
+        lawToast(`🍎 Sistema Apple detectado - LAW otimizado!`); 
     }
-
-    setupSecurity();
-    await loadCss("https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css");
-    await loadScript("https://cdn.jsdelivr.net/npm/toastify-js", "Toastify");
-
-    await showEstudioLawSplash();
-    await showPasswordPrompt();
-
-    if (!isAuthorized) isAuthorized = true;
-
-    await fetchUserProfile();
-
-    sendToast("✅ LAW Injetado com sucesso!");
-    await delay(500);
-    sendToast(`👤 Bem-vindo(a), ${user.nickname}`);
-    if (device.apple) {
-      sendToast("🍏 Que tal um Samsung?");
+    
+    if (device.mobile) {
+        await lawDelay(500);
+        lawToast(`📱 Versão mobile LAW ativada!`);
     }
-
-    pluginLoop();
-
-    await delay(1000);
-    await hideEstudioLawSplash();
-
+    
+    // Show loaded modules
+    loadedLAWModules.forEach(module => 
+        lawToast(`🔧 ${module} carregado!`, 2000, 'top')
+    );
+    
+    await lawDelay(2000);
+    
+    hideLAWSplashScreen();
+    setupLAWInterface();
+    setupLAWCore();
+    
+    // Final message
+    setTimeout(() => {
+        lawToast(`🎯 LAW Academy Tools ${ver} pronto para uso!`, 4000);
+        lawDebug("✅ LAW System fully initialized!");
+    }, 1500);
+    
     console.clear();
-    loadedPlugins.forEach(p => sendToast(`🔧 Plugin carregado: ${p}`, 2000));
-  }
-
-  // ========= Rodar script =========
-  initLAW();
-
+    console.log(`%c
+    ███████╗███████╗████████╗██╗   ██╗██████╗ ██╗ ██████╗     ██╗      █████╗ ██╗    ██╗
+    ██╔════╝██╔════╝╚══██╔══╝██║   ██║██╔══██╗██║██╔═══██╗    ██║     ██╔══██╗██║    ██║
+    █████╗  ███████╗   ██║   ██║   ██║██║  ██║██║██║   ██║    ██║     ███████║██║ █╗ ██║
+    ██╔══╝  ╚════██║   ██║   ██║   ██║██║  ██║██║██║   ██║    ██║     ██╔══██║██║███╗██║
+    ███████╗███████║   ██║   ╚██████╔╝██████╔╝██║╚██████╔╝    ███████╗██║  ██║╚███╔███╔╝
+    ╚══════╝╚══════╝   ╚═╝    ╚═════╝ ╚═════╝ ╚═╝ ╚═════╝     ╚══════╝╚═╝  ╚═╝ ╚══╝╚══╝ 
+    
+    🎯 Academy Tools ${ver} - Desenvolvido com excelência
+    ⚖️ Todos os direitos reservados
+    `, 'color: #00ff41; font-weight: bold;');
+    
 })();
+
+/* 
+🎯 ESTÚDIO LAW - Academy Tools
+⚖️ Versão: LAW v1.0.0
+📅 Desenvolvido em 2024
+🔒 Todos os direitos reservados
+
+💡 Características:
+- Interface completamente personalizada
+- Sistema de segurança avançado  
+- Tema LAW exclusivo
+- Módulos otimizados
+- Compatibilidade total
+
+🚀 Para suporte e atualizações:
+   contato@estudiolaw.com
+*/
