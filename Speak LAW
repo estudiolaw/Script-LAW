@@ -1,422 +1,211 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Automação Speak - Atividades Pendentes</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            margin: 0;
-            padding: 20px;
-            min-height: 100vh;
-            color: white;
-        }
-        
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-        }
-        
-        h1 {
-            text-align: center;
-            margin-bottom: 30px;
-            font-size: 2.2em;
-            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        
-        .card {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 15px;
-            padding: 20px;
-            margin: 15px 0;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            transition: all 0.3s ease;
-        }
-        
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-        }
-        
-        .btn {
-            background: linear-gradient(45deg, #ff6b6b, #ee5a52);
-            border: none;
-            padding: 12px 25px;
-            border-radius: 25px;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin: 5px;
-            font-size: 14px;
-        }
-        
-        .btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
-        }
-        
-        .btn.secondary {
-            background: linear-gradient(45deg, #4ecdc4, #44a08d);
-        }
-        
-        .btn.secondary:hover {
-            box-shadow: 0 5px 15px rgba(78, 205, 196, 0.4);
-        }
-        
-        .status {
-            padding: 8px 15px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: bold;
-            display: inline-block;
-            margin: 10px 0;
-        }
-        
-        .status.running {
-            background: rgba(255, 193, 7, 0.2);
-            color: #ffc107;
-            border: 1px solid #ffc107;
-        }
-        
-        .status.stopped {
-            background: rgba(220, 53, 69, 0.2);
-            color: #dc3545;
-            border: 1px solid #dc3545;
-        }
-        
-        .status.success {
-            background: rgba(40, 167, 69, 0.2);
-            color: #28a745;
-            border: 1px solid #28a745;
-        }
-        
-        .instructions {
-            background: rgba(255, 255, 255, 0.05);
-            border-left: 4px solid #4ecdc4;
-            padding: 15px;
-            margin: 20px 0;
-            border-radius: 0 10px 10px 0;
-        }
-        
-        .code-snippet {
-            background: rgba(0, 0, 0, 0.3);
-            padding: 15px;
-            border-radius: 10px;
-            font-family: 'Courier New', monospace;
-            font-size: 12px;
-            overflow-x: auto;
-            margin: 15px 0;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .warning {
-            background: rgba(255, 193, 7, 0.1);
-            border: 1px solid #ffc107;
-            color: #ffc107;
-            padding: 15px;
-            border-radius: 10px;
-            margin: 15px 0;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>🚀 Automação Speak</h1>
-        
-        <div class="warning">
-            ⚠️ <strong>Aviso:</strong> Use com responsabilidade! Automação excessiva pode violar os termos de uso do Speak.
-        </div>
-        
-        <div class="card">
-            <h3>📋 Script para Console do Navegador</h3>
-            <p>Cole este código no console do navegador (F12) quando estiver na página do Speak:</p>
-            
-            <div class="code-snippet" id="script-code">
-// Script de Automação para Speak - VERSÃO UM CLIQUE
-(function() {
-    'use strict';
-    
-    // Configurações
-    const CONFIG = {
-        delay: 1500, // Delay entre ações (ms)
-        maxAttempts: 50, // Máximo de tentativas
-        fastMode: true // Modo rápido
-    };
-    
-    let attempts = 0;
-    let completed = 0;
-    
-    // Função de delay
-    const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
-    
-    // Seletores mais abrangentes do Speak
-    const SELECTORS = [
-        // Botões principais
-        'button[data-testid*="continue"]',
-        'button[data-testid*="next"]',
-        'button[data-testid*="start"]',
-        'button[data-testid*="complete"]',
-        'button[data-testid*="practice"]',
-        
-        // Classes comuns
-        '.continue-btn, .next-btn, .start-btn',
-        '.lesson-btn, .practice-btn, .complete-btn',
-        'button[class*="continue"]',
-        'button[class*="next"]',
-        'button[class*="start"]',
-        'button[class*="practice"]',
-        
-        // Botões por texto (português/inglês)
-        'button:contains("Continuar")',
-        'button:contains("Próximo")',
-        'button:contains("Continue")',
-        'button:contains("Next")',
-        'button:contains("Start")',
-        'button:contains("Iniciar")',
-        'button:contains("Praticar")',
-        'button:contains("Practice")',
-        
-        // Botões genéricos ativos
-        'button:not([disabled]):visible',
-        'a[role="button"]:visible',
-        
-        // Seletores específicos do Speak (atualizados)
-        '[data-cy*="continue"]',
-        '[data-cy*="next"]',
-        '[data-cy*="start"]',
-        'div[role="button"]:visible'
-    ];
-    
-    // Função melhorada para encontrar elementos
-    function findClickableElement() {
-        for (let selector of SELECTORS) {
-            let elements;
-            
-            if (selector.includes(':contains')) {
-                const text = selector.match(/:contains\("([^"]+)"\)/)[1];
-                elements = Array.from(document.querySelectorAll('button, a[role="button"]'))
-                    .filter(el => el.textContent.trim().includes(text) && isVisible(el));
-            } else {
-                elements = Array.from(document.querySelectorAll(selector))
-                    .filter(isVisible);
-            }
-            
-            if (elements.length > 0) {
-                // Prioriza botões com texto relevante
-                const priorityElement = elements.find(el => {
-                    const text = el.textContent.toLowerCase();
-                    return text.includes('continuar') || text.includes('continue') || 
-                           text.includes('próximo') || text.includes('next') ||
-                           text.includes('iniciar') || text.includes('start');
-                });
-                
-                return priorityElement || elements[0];
-            }
-        }
-        return null;
+(async function () {
+  'use strict';
+
+  // 🟦 Lista de senhas válidas com data de expiração (ano-mês-dia)
+  const validPasswords = [
+    { senha: "1BMIDIAS", validade: "2025-12-31" },
+    { senha: "law2024", validade: "2025-08-01" },
+    { senha: "speakbot", validade: "2025-07-15" },
+    { senha: "acesso01", validade: "2025-09-30" },
+    { senha: "testeOK", validade: "2025-11-20" },
+    { senha: "open123", validade: "2025-12-01" },
+    { senha: "powerUser", validade: "2025-10-10" },
+    { senha: "devAccess", validade: "2025-08-25" },
+    { senha: "lawAI", validade: "2025-07-30" },
+    { senha: "superSpeak", validade: "2025-12-25" }
+  ];
+
+  // Utilitário de espera
+  function wait(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  // 🛡️ PAINEL DE SENHA
+  const passwordScreen = document.createElement('div');
+  passwordScreen.style.cssText = `
+    position:fixed; top:0; left:0; width:100%; height:100%;
+    background: linear-gradient(135deg, #1a1f2e, #0e1624);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    color: white; font-family: 'Segoe UI', sans-serif; z-index:9999;
+  `;
+
+  passwordScreen.innerHTML = `
+    <div style="text-align:center;">
+      <h1 style="font-size:2.5em; color:#00aaff; margin-bottom:20px;">🔐 Acesso Restrito</h1>
+      <input id="senhaInput" type="password" placeholder="Digite sua senha..." style="
+        padding: 12px 20px; border-radius: 10px; border: none; font-size: 1.2em;
+        outline: none; width: 250px; text-align: center;
+      "/>
+      <div id="mensagemSenha" style="margin-top:15px; height: 20px; font-weight: bold;"></div>
+      <button id="btnValidarSenha" style="
+        margin-top: 20px; padding: 10px 25px;
+        background: linear-gradient(45deg, #00aaff, #0077cc);
+        border: none; border-radius: 25px; color: white;
+        font-size: 1em; font-weight: bold; cursor: pointer;
+      ">Entrar</button>
+    </div>
+  `;
+
+  document.body.appendChild(passwordScreen);
+
+  const input = document.getElementById('senhaInput');
+  const btn = document.getElementById('btnValidarSenha');
+  const msg = document.getElementById('mensagemSenha');
+
+  function validarSenha(senha) {
+    const hoje = new Date();
+    for (const item of validPasswords) {
+      if (item.senha === senha) {
+        const validade = new Date(item.validade);
+        if (validade >= hoje) return true;
+      }
     }
-    
-    // Verifica se elemento está visível
-    function isVisible(element) {
-        if (!element) return false;
-        const style = window.getComputedStyle(element);
-        return style.display !== 'none' && 
-               style.visibility !== 'hidden' && 
-               style.opacity !== '0' &&
-               element.offsetWidth > 0 && 
-               element.offsetHeight > 0;
-    }
-    
-    // Função principal de automação
-    async function autoComplete() {
-        console.log('🚀 INICIANDO AUTOMAÇÃO SPEAK - MODO UM CLIQUE');
-        console.log('⏱️ Configuração:', CONFIG);
-        
-        while (attempts < CONFIG.maxAttempts) {
-            attempts++;
-            
-            const element = findClickableElement();
-            
-            if (element) {
-                const text = element.textContent.trim() || element.getAttribute('aria-label') || 'Elemento';
-                console.log(`✅ [${attempts}] Clicando: "${text}"`);
-                
-                // Simula clique mais natural
-                element.focus();
-                element.click();
-                
-                // Dispara eventos adicionais se necessário
-                ['mousedown', 'mouseup', 'click'].forEach(eventType => {
-                    element.dispatchEvent(new MouseEvent(eventType, {
-                        bubbles: true,
-                        cancelable: true,
-                        view: window
-                    }));
-                });
-                
-                completed++;
-                await wait(CONFIG.delay);
-                
-                // Verifica se mudou de página ou completou algo
-                await wait(500);
-                
-            } else {
-                console.log(`🔍 [${attempts}] Procurando elementos...`);
-                
-                // Verifica se chegou ao final
-                if (attempts > 10 && !findClickableElement()) {
-                    const indicators = [
-                        '.completed', '.finished', '.done',
-                        '[data-testid*="complete"]',
-                        'text*="Parabéns"', 'text*="Completed"',
-                        '.success-message'
-                    ];
-                    
-                    if (indicators.some(sel => document.querySelector(sel))) {
-                        console.log('🎉 ATIVIDADES COMPLETADAS!');
-                        break;
-                    }
-                }
-                
-                await wait(CONFIG.delay * 2);
-            }
-            
-            // Scroll ocasional para carregar conteúdo
-            if (attempts % 5 === 0) {
-                window.scrollTo(0, document.body.scrollHeight / 2);
-                await wait(500);
-                window.scrollTo(0, 0);
-            }
+    return false;
+  }
+
+  btn.onclick = async () => {
+    const senhaDigitada = input.value.trim();
+    if (validarSenha(senhaDigitada)) {
+      msg.style.color = '#00ff99';
+      msg.textContent = '✅ Acesso liberado!';
+
+      // 🎉 Efeito visual de comemoração
+      const confete = document.createElement('div');
+      confete.innerHTML = '🎉🎊';
+      confete.style.cssText = `
+        position: fixed; top: 20px; font-size: 3em;
+        left: 50%; transform: translateX(-50%);
+        animation: pulso 1s ease infinite;
+      `;
+      passwordScreen.appendChild(confete);
+
+      const style = document.createElement('style');
+      style.innerHTML = `
+        @keyframes pulso {
+          0% { transform: translateX(-50%) scale(1); }
+          50% { transform: translateX(-50%) scale(1.2); }
+          100% { transform: translateX(-50%) scale(1); }
         }
-        
-        console.log(`🏁 AUTOMAÇÃO FINALIZADA!`);
-        console.log(`📊 Estatísticas:`);
-        console.log(`   • Tentativas: ${attempts}`);
-        console.log(`   • Cliques realizados: ${completed}`);
-        console.log(`   • Status: ${completed > 0 ? 'Sucesso' : 'Nenhuma ação encontrada'}`);
-        
-        // Notificação visual
-        if (completed > 0) {
-            const notification = document.createElement('div');
-            notification.style.cssText = `
-                position: fixed; top: 20px; right: 20px; z-index: 10000;
-                background: linear-gradient(45deg, #4CAF50, #45a049);
-                color: white; padding: 15px 20px; border-radius: 10px;
-                font-family: Arial, sans-serif; font-weight: bold;
-                box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-                animation: slideIn 0.5s ease-out;
-            `;
-            notification.innerHTML = `🎉 Automação concluída!<br>✅ ${completed} ações realizadas`;
-            document.body.appendChild(notification);
-            
-            setTimeout(() => notification.remove(), 5000);
-        }
+      `;
+      document.head.appendChild(style);
+
+      await wait(2000);
+      passwordScreen.remove();
+
+      // ➕ CONTINUA: mostra splash e inicia automação
+      await showEstudioLawSplash();
+      await wait(2000);
+      await hideEstudioLawSplash();
+      await iniciarAutomacao();
+
+    } else {
+      msg.style.color = 'red';
+      msg.textContent = '❌ Senha incorreta ou expirada!';
+      input.style.border = '2px solid red';
     }
-    
-    // Adiciona CSS para animação
+  };
+
+  // 🔵 Splash screen Estúdio LAW
+  const splashScreen = document.createElement('div');
+
+  async function showEstudioLawSplash() {
+    splashScreen.style.cssText = `
+      position:fixed; top:0; left:0; width:100%; height:100%;
+      z-index:9999;
+      display:flex; align-items:center; justify-content:center;
+      background: linear-gradient(-45deg, #0f1c2e, #0a1a2f, #152842, #0a1b2d);
+      background-size: 400% 400%;
+      animation: backgroundFlow 10s ease infinite;
+      user-select:none;
+      font-family:'Segoe UI', sans-serif;
+      transition: opacity 0.8s ease;
+    `;
+
+    splashScreen.innerHTML = `
+      <div style="
+        font-size: 3em;
+        font-weight: bold;
+        color: #ffffff;
+        text-shadow: 0 0 10px #00aaff, 0 0 20px #0077cc;
+        animation: glowText 2s ease-in-out infinite alternate,
+                   fadeSlideIn 1.5s ease forwards;
+        opacity: 0;
+        transform: translateY(30px);
+      ">
+        Estúdio <span style="color:#00aaff;">LAW</span>
+      </div>
+    `;
+
     const style = document.createElement('style');
     style.textContent = `
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
+      @keyframes backgroundFlow {
+        0% {background-position: 0% 50%;}
+        50% {background-position: 100% 50%;}
+        100% {background-position: 0% 50%;}
+      }
+      @keyframes glowText {
+        from { text-shadow: 0 0 10px #00aaff, 0 0 20px #0077cc; }
+        to { text-shadow: 0 0 20px #00ccff, 0 0 30px #00aaff; }
+      }
+      @keyframes fadeSlideIn {
+        to { opacity: 1; transform: translateY(0); }
+      }
     `;
     document.head.appendChild(style);
-    
-    // INICIA AUTOMATICAMENTE!
-    autoComplete();
-    
+    document.body.appendChild(splashScreen);
+    setTimeout(() => splashScreen.style.opacity = '1', 10);
+  }
+
+  async function hideEstudioLawSplash() {
+    splashScreen.style.opacity = '0';
+    setTimeout(() => splashScreen.remove(), 1000);
+  }
+
+  // 🚀 Script principal de automação
+  async function iniciarAutomacao() {
+    const CONFIG = { delay: 1500, maxAttempts: 50 };
+    let attempts = 0, completed = 0;
+
+    const SELECTORS = [
+      'button[data-testid*="continue"]',
+      'button[data-testid*="next"]',
+      'button[data-testid*="start"]',
+      'button[data-testid*="complete"]',
+      'button[data-testid*="practice"]',
+      '.continue-btn, .next-btn, .start-btn',
+      'button:contains("Continuar")', 'button:contains("Próximo")',
+      'button:contains("Next")', 'button:contains("Start")'
+    ];
+
+    function isVisible(el) {
+      if (!el) return false;
+      const s = getComputedStyle(el);
+      return s.display !== 'none' && s.opacity !== '0' && el.offsetHeight > 0;
+    }
+
+    function findClickable() {
+      for (const selector of SELECTORS) {
+        const list = [...document.querySelectorAll('button, a[role="button"]')]
+          .filter(el => el.textContent.toLowerCase().includes(selector.split('"')[1]?.toLowerCase()) && isVisible(el));
+        if (list.length) return list[0];
+      }
+      return null;
+    }
+
+    console.log('🔁 Iniciando automação...');
+    while (attempts < CONFIG.maxAttempts) {
+      attempts++;
+      const el = findClickable();
+      if (el) {
+        el.click(); completed++;
+        console.log(`✅ [${attempts}] ${el.innerText || 'Botão'}`);
+        await wait(CONFIG.delay);
+      } else {
+        console.log('⏳ Aguardando elementos...');
+        await wait(CONFIG.delay);
+      }
+    }
+
+    console.log(`🏁 Finalizado. ${completed} ações realizadas.`);
+  }
 })();
-            </div>
-            
-            <button class="btn" onclick="copyScript()">📋 Copiar Script</button>
-        </div>
-        
-        <div class="card">
-            <h3>📖 Como Usar</h3>
-            <div class="instructions">
-                <strong>Passo a passo:</strong><br>
-                1. Abra o Speak no navegador<br>
-                2. Pressione F12 para abrir o console<br>
-                3. Cole o script acima e pressione Enter<br>
-                4. Digite <code>speakBot.start()</code> e pressione Enter<br>
-                5. Para parar: <code>speakBot.stop()</code>
-            </div>
-        </div>
-        
-        <div class="card">
-            <h3>⚙️ Configurações Avançadas</h3>
-            <p>Você pode ajustar o script para suas necessidades:</p>
-            
-            <button class="btn secondary" onclick="showAdvancedSettings()">⚙️ Configurações</button>
-            <button class="btn secondary" onclick="showSelectors()">🎯 Seletores CSS</button>
-            
-            <div id="advanced-settings" style="display: none; margin-top: 15px;">
-                <div class="code-snippet">
-// Ajustar velocidade (em milissegundos)
-speakBot.delay = 3000; // 3 segundos entre ações
-
-// Verificar se está funcionando
-console.log(speakBot.isRunning); // true/false
-console.log(speakBot.completedTasks); // número de tarefas
-                </div>
-            </div>
-            
-            <div id="selectors-info" style="display: none; margin-top: 15px;">
-                <p><strong>Dica:</strong> Se o script não funcionar, pode ser que os seletores CSS mudaram. Você pode:</p>
-                <ol>
-                    <li>Clicar com botão direito no botão que quer automatizar</li>
-                    <li>Escolher "Inspecionar elemento"</li>
-                    <li>Copiar o seletor CSS</li>
-                    <li>Adicionar ao array de seletores no script</li>
-                </ol>
-            </div>
-        </div>
-        
-        <div class="card">
-            <h3>🔧 Bookmarklet (Versão Rápida)</h3>
-            <p>Arraste este link para sua barra de favoritos para acesso rápido:</p>
-            
-            <a href="javascript:(function(){class SpeakAutomation{constructor(){this.isRunning=false;this.completedTasks=0;this.delay=2000}wait(ms){return new Promise(resolve=>setTimeout(resolve,ms))}async clickElement(selector,description){const element=document.querySelector(selector);if(element){console.log(`✅ Clicando em: ${description}`);element.click();await this.wait(this.delay);return true}console.log(`❌ Não encontrado: ${description}`);return false}async automateActivities(){console.log('🚀 Iniciando automação...');this.isRunning=true;const selectors=[{selector:'[data-testid=\"continue-button\"]',desc:'Botão Continuar'},{selector:'.continue-btn',desc:'Continuar Aula'},{selector:'[data-testid=\"next-button\"]',desc:'Próximo'},{selector:'.lesson-complete-btn',desc:'Completar Lição'},{selector:'[data-testid=\"practice-button\"]',desc:'Praticar'},{selector:'.start-lesson',desc:'Iniciar Lição'}];while(this.isRunning){let foundAction=false;for(let item of selectors){if(await this.clickElement(item.selector,item.desc)){foundAction=true;this.completedTasks++;break}}if(!foundAction){console.log('🔍 Procurando por mais atividades...');await this.wait(3000);if(!document.querySelector('.lesson, .activity, .practice')){console.log('✅ Parece que não há mais atividades pendentes!');this.stop()}}await this.wait(1000)}}stop(){this.isRunning=false;console.log(`🏁 Automação finalizada! Tarefas completadas: ${this.completedTasks}`)}start(){if(this.isRunning){console.log('⚠️ Automação já está rodando!');return}this.automateActivities()}}window.speakBot=new SpeakAutomation();speakBot.start();})();" 
-                   class="btn" 
-                   style="text-decoration: none; display: inline-block;">
-                🚀 Speak Auto Bot
-            </a>
-            
-            <p><small>Arraste o link acima para sua barra de favoritos, depois clique nele quando estiver no Speak!</small></p>
-        </div>
-    </div>
-
-    <script>
-        function copyScript() {
-            const scriptElement = document.getElementById('script-code');
-            const text = scriptElement.textContent;
-            
-            navigator.clipboard.writeText(text).then(() => {
-                alert('✅ Script copiado! Cole no console do navegador (F12)');
-            });
-        }
-        
-        function showAdvancedSettings() {
-            const div = document.getElementById('advanced-settings');
-            div.style.display = div.style.display === 'none' ? 'block' : 'none';
-        }
-        
-        function showSelectors() {
-            const div = document.getElementById('selectors-info');
-            div.style.display = div.style.display === 'none' ? 'block' : 'none';
-        }
-    </script>
-</body>
-</html>
