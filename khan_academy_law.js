@@ -1,18 +1,8 @@
-// Script Estúdio LAW - Sistema de senha + automação Khan Academy
-
 (async () => {
   // --- Lista de senhas válidas e vencimento ---
   const validPasswords = [
     { senha: '1BMIDIAS', vencimento: '2026-01-01' },
-    { senha: 'KhanLAW01', vencimento: '2025-06-30' },
-    { senha: 'EstudioLAW2', vencimento: '2025-08-15' },
-    { senha: 'LAWpass123', vencimento: '2025-07-31' },
-    { senha: 'LAWaccess', vencimento: '2025-09-30' },
-    { senha: 'KhanUser5', vencimento: '2025-10-31' },
-    { senha: 'SenhaLAW7', vencimento: '2025-11-30' },
-    { senha: 'LAWentry', vencimento: '2025-12-15' },
-    { senha: 'KhanPass9', vencimento: '2025-07-20' },
-    { senha: 'LAWmaster', vencimento: '2025-08-31' },
+    { senha: '270425', vencimento: '2025-12-31' },
   ];
 
   // --- Delay helper ---
