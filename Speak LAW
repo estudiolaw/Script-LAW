@@ -1,238 +1,80 @@
-# Script de Automação com Text-to-Speech
-# Criado para automatizar tarefas com feedback de voz
+(function() {
+  'use strict';
 
-# Carrega o assembly para síntese de voz
-Add-Type -AssemblyName System.Speech
-$tts = New-Object System.Speech.Synthesis.SpeechSynthesizer
+  // ⚙️ Configurações
+  const CONFIG = {
+    delay: 1500, // Tempo entre ações (em milissegundos)
+    maxAttempts: 100, // Número máximo de tentativas
+  };
 
-# Configurações de voz
-$tts.SelectVoiceByHints([System.Speech.Synthesis.VoiceGender]::Female)
-$tts.Rate = 0  # Velocidade da fala (-10 a 10)
-$tts.Volume = 80  # Volume (0 a 100)
+  let attempts = 0;
+  let clicks = 0;
 
-# Função para falar texto
-function Speak-Text {
-    param([string]$text)
-    Write-Host "🔊 Falando: $text" -ForegroundColor Green
-    $tts.Speak($text)
-}
+  // 🕒 Espera
+  const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
 
-# Função para limpar arquivos temporários
-function Clear-TempFiles {
-    Speak-Text "Iniciando limpeza de arquivos temporários"
-    
-    $tempPaths = @(
-        "$env:TEMP\*",
-        "$env:LOCALAPPDATA\Temp\*",
-        "$env:WINDIR\Temp\*"
-    )
-    
-    $totalCleaned = 0
-    foreach ($path in $tempPaths) {
-        try {
-            $files = Get-ChildItem -Path $path -Recurse -Force -ErrorAction SilentlyContinue
-            $count = $files.Count
-            Remove-Item -Path $path -Recurse -Force -ErrorAction SilentlyContinue
-            $totalCleaned += $count
-            Write-Host "✅ Limpeza concluída: $path ($count arquivos)" -ForegroundColor Yellow
-        }
-        catch {
-            Write-Host "⚠️ Erro ao limpar: $path" -ForegroundColor Red
-        }
+  // 🔍 Verifica se o elemento está visível
+  const isVisible = el => {
+    const style = window.getComputedStyle(el);
+    return el.offsetWidth > 0 && el.offsetHeight > 0 &&
+           style.display !== 'none' &&
+           style.visibility !== 'hidden' &&
+           style.opacity !== '0';
+  };
+
+  // 🎯 Seletores possíveis de botões
+  const BUTTON_SELECTORS = [
+    'button[data-testid*="continue"]',
+    'button[data-testid*="next"]',
+    'button[data-testid*="start"]',
+    'button[data-testid*="complete"]',
+    'button[data-testid*="practice"]',
+    'button[class*="continue"]',
+    'button[class*="next"]',
+    'button[class*="start"]',
+    'button[class*="practice"]',
+    'button:contains("Continuar")',
+    'button:contains("Próximo")',
+    'button:contains("Next")',
+    'button:contains("Iniciar")',
+    'button:contains("Start")',
+    'button:contains("Praticar")',
+    'button:contains("Practice")',
+    'div[role="button"]'
+  ];
+
+  // 🔎 Tenta encontrar um botão clicável
+  const findButton = () => {
+    for (let sel of BUTTON_SELECTORS) {
+      let elements = Array.from(document.querySelectorAll('button, div[role="button"]'))
+        .filter(el => isVisible(el) && el.innerText.toLowerCase().match(/continuar|next|próximo|start|iniciar|praticar|complete/));
+      if (elements.length) return elements[0];
     }
-    
-    Speak-Text "Limpeza concluída. $totalCleaned arquivos removidos"
-}
+    return null;
+  };
 
-# Função para verificar atualizações do sistema
-function Check-WindowsUpdates {
-    Speak-Text "Verificando atualizações do Windows"
-    
-    try {
-        # Instala o módulo PSWindowsUpdate se não estiver instalado
-        if (!(Get-Module -ListAvailable -Name PSWindowsUpdate)) {
-            Speak-Text "Instalando módulo de atualizações"
-            Install-Module PSWindowsUpdate -Force -Scope CurrentUser
-        }
-        
-        Import-Module PSWindowsUpdate
-        $updates = Get-WUList
-        
-        if ($updates.Count -gt 0) {
-            Speak-Text "Encontradas $($updates.Count) atualizações disponíveis"
-            Write-Host "📋 Atualizações disponíveis:" -ForegroundColor Cyan
-            $updates | ForEach-Object { Write-Host "  - $($_.Title)" -ForegroundColor White }
-        } else {
-            Speak-Text "Sistema está atualizado"
-            Write-Host "✅ Nenhuma atualização disponível" -ForegroundColor Green
-        }
-    }
-    catch {
-        Speak-Text "Erro ao verificar atualizações"
-        Write-Host "❌ Erro: $($_.Exception.Message)" -ForegroundColor Red
-    }
-}
+  // 🚀 Função principal
+  async function runAutomation() {
+    console.log("🔁 Iniciando automação no Speak...");
+    while (attempts < CONFIG.maxAttempts) {
+      attempts++;
+      const button = findButton();
 
-# Função para verificar status do sistema
-function Check-SystemStatus {
-    Speak-Text "Verificando status do sistema"
-    
-    # Uso da CPU
-    $cpu = Get-Counter "\Processor(_Total)\% Processor Time" | Select-Object -ExpandProperty CounterSamples | Select-Object -ExpandProperty CookedValue
-    $cpu = [Math]::Round($cpu, 2)
-    
-    # Uso da RAM
-    $memory = Get-CimInstance -ClassName Win32_OperatingSystem
-    $totalRAM = [Math]::Round($memory.TotalVisibleMemorySize / 1MB, 2)
-    $freeRAM = [Math]::Round($memory.FreePhysicalMemory / 1MB, 2)
-    $usedRAM = [Math]::Round($totalRAM - $freeRAM, 2)
-    $ramPercent = [Math]::Round(($usedRAM / $totalRAM) * 100, 2)
-    
-    # Espaço em disco (unidade C:)
-    $disk = Get-CimInstance -ClassName Win32_LogicalDisk -Filter "DeviceID='C:'"
-    $totalDisk = [Math]::Round($disk.Size / 1GB, 2)
-    $freeDisk = [Math]::Round($disk.FreeSpace / 1GB, 2)
-    $usedDisk = [Math]::Round($totalDisk - $freeDisk, 2)
-    $diskPercent = [Math]::Round(($usedDisk / $totalDisk) * 100, 2)
-    
-    Write-Host "📊 Status do Sistema:" -ForegroundColor Cyan
-    Write-Host "  CPU: $cpu%" -ForegroundColor $(if($cpu -gt 80) {"Red"} else {"Green"})
-    Write-Host "  RAM: $ramPercent% ($usedRAM GB de $totalRAM GB)" -ForegroundColor $(if($ramPercent -gt 80) {"Red"} else {"Green"})
-    Write-Host "  Disco C: $diskPercent% ($usedDisk GB de $totalDisk GB)" -ForegroundColor $(if($diskPercent -gt 80) {"Red"} else {"Green"})
-    
-    $statusMsg = "CPU em $cpu por cento, RAM em $ramPercent por cento, Disco em $diskPercent por cento"
-    Speak-Text $statusMsg
-}
-
-# Função para fazer backup de arquivos importantes
-function Backup-ImportantFiles {
-    param([string]$backupPath = "C:\Backup_$(Get-Date -Format 'yyyyMMdd_HHmmss')")
-    
-    Speak-Text "Iniciando backup de arquivos importantes"
-    
-    # Cria diretório de backup
-    New-Item -Path $backupPath -ItemType Directory -Force | Out-Null
-    
-    # Pastas para backup
-    $foldersToBackup = @(
-        "$env:USERPROFILE\Desktop",
-        "$env:USERPROFILE\Documents",
-        "$env:USERPROFILE\Downloads",
-        "$env:USERPROFILE\Pictures"
-    )
-    
-    foreach ($folder in $foldersToBackup) {
-        if (Test-Path $folder) {
-            $folderName = Split-Path $folder -Leaf
-            $destPath = Join-Path $backupPath $folderName
-            
-            try {
-                Copy-Item -Path $folder -Destination $destPath -Recurse -Force
-                Write-Host "✅ Backup concluído: $folderName" -ForegroundColor Green
-            }
-            catch {
-                Write-Host "❌ Erro no backup: $folderName" -ForegroundColor Red
-            }
-        }
+      if (button) {
+        console.log(`✅ [${attempts}] Clicando em: "${button.innerText.trim()}"`);
+        button.click();
+        clicks++;
+        await wait(CONFIG.delay);
+      } else {
+        console.log(`🔍 [${attempts}] Nenhum botão encontrado, tentando novamente...`);
+        await wait(CONFIG.delay * 2);
+      }
     }
-    
-    Speak-Text "Backup concluído em $backupPath"
-}
 
-# Função para organizar área de trabalho
-function Organize-Desktop {
-    Speak-Text "Organizando área de trabalho"
-    
-    $desktop = [Environment]::GetFolderPath("Desktop")
-    $organized = Join-Path $desktop "Arquivos_Organizados_$(Get-Date -Format 'yyyyMMdd')"
-    
-    # Cria pastas de organização
-    $folders = @("Documentos", "Imagens", "Videos", "Executaveis", "Outros")
-    foreach ($folder in $folders) {
-        New-Item -Path (Join-Path $organized $folder) -ItemType Directory -Force | Out-Null
-    }
-    
-    # Organiza arquivos por extensão
-    $files = Get-ChildItem -Path $desktop -File
-    foreach ($file in $files) {
-        $dest = switch ($file.Extension.ToLower()) {
-            {$_ -in ".txt", ".doc", ".docx", ".pdf", ".rtf"} { "Documentos" }
-            {$_ -in ".jpg", ".jpeg", ".png", ".gif", ".bmp"} { "Imagens" }
-            {$_ -in ".mp4", ".avi", ".mkv", ".mov", ".wmv"} { "Videos" }
-            {$_ -in ".exe", ".msi", ".bat", ".cmd"} { "Executaveis" }
-            default { "Outros" }
-        }
-        
-        try {
-            Move-Item -Path $file.FullName -Destination (Join-Path $organized $dest) -Force
-            Write-Host "📁 Movido: $($file.Name) → $dest" -ForegroundColor Yellow
-        }
-        catch {
-            Write-Host "❌ Erro ao mover: $($file.Name)" -ForegroundColor Red
-        }
-    }
-    
-    Speak-Text "Área de trabalho organizada"
-}
+    console.log("🏁 Automação finalizada.");
+    console.log(`🧮 Tentativas: ${attempts}`);
+    console.log(`✅ Cliques feitos: ${clicks}`);
+  }
 
-# Menu principal
-function Show-Menu {
-    Clear-Host
-    Write-Host "🤖 SCRIPT DE AUTOMAÇÃO COM VOICE" -ForegroundColor Cyan
-    Write-Host "=================================" -ForegroundColor Cyan
-    Write-Host "1. Limpar arquivos temporários" -ForegroundColor White
-    Write-Host "2. Verificar status do sistema" -ForegroundColor White
-    Write-Host "3. Verificar atualizações do Windows" -ForegroundColor White
-    Write-Host "4. Fazer backup de arquivos importantes" -ForegroundColor White
-    Write-Host "5. Organizar área de trabalho" -ForegroundColor White
-    Write-Host "6. Executar todas as tarefas" -ForegroundColor White
-    Write-Host "0. Sair" -ForegroundColor White
-    Write-Host "=================================" -ForegroundColor Cyan
-}
-
-# Loop principal
-do {
-    Show-Menu
-    Speak-Text "Escolha uma opção do menu"
-    $choice = Read-Host "Digite sua escolha"
-    
-    switch ($choice) {
-        "1" { Clear-TempFiles }
-        "2" { Check-SystemStatus }
-        "3" { Check-WindowsUpdates }
-        "4" { 
-            $backupPath = Read-Host "Digite o caminho do backup (Enter para padrão)"
-            if ([string]::IsNullOrWhiteSpace($backupPath)) {
-                Backup-ImportantFiles
-            } else {
-                Backup-ImportantFiles -backupPath $backupPath
-            }
-        }
-        "5" { Organize-Desktop }
-        "6" {
-            Speak-Text "Executando todas as tarefas de automação"
-            Clear-TempFiles
-            Check-SystemStatus
-            Check-WindowsUpdates
-            Backup-ImportantFiles
-            Organize-Desktop
-            Speak-Text "Todas as tarefas foram concluídas"
-        }
-        "0" { 
-            Speak-Text "Encerrando script de automação. Até logo!"
-            break 
-        }
-        default { 
-            Speak-Text "Opção inválida. Tente novamente"
-            Write-Host "❌ Opção inválida!" -ForegroundColor Red 
-        }
-    }
-    
-    if ($choice -ne "0") {
-        Write-Host "`nPressione qualquer tecla para continuar..." -ForegroundColor Gray
-        $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
-    }
-} while ($choice -ne "0")
-
-# Libera recursos
-$tts.Dispose()
+  runAutomation();
+})();
