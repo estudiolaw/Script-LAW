@@ -1,1 +1,211 @@
+(async function () {
+  'use strict';
 
+  // 🟦 Lista de senhas válidas com data de expiração (ano-mês-dia)
+  const validPasswords = [
+    { senha: "estudio123", validade: "2025-12-31" },
+    { senha: "law2024", validade: "2025-08-01" },
+    { senha: "speakbot", validade: "2025-07-15" },
+    { senha: "acesso01", validade: "2025-09-30" },
+    { senha: "testeOK", validade: "2025-11-20" },
+    { senha: "open123", validade: "2025-12-01" },
+    { senha: "powerUser", validade: "2025-10-10" },
+    { senha: "devAccess", validade: "2025-08-25" },
+    { senha: "lawAI", validade: "2025-07-30" },
+    { senha: "superSpeak", validade: "2025-12-25" }
+  ];
+
+  // Utilitário de espera
+  function wait(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  // 🛡️ PAINEL DE SENHA
+  const passwordScreen = document.createElement('div');
+  passwordScreen.style.cssText = `
+    position:fixed; top:0; left:0; width:100%; height:100%;
+    background: linear-gradient(135deg, #1a1f2e, #0e1624);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    color: white; font-family: 'Segoe UI', sans-serif; z-index:9999;
+  `;
+
+  passwordScreen.innerHTML = `
+    <div style="text-align:center;">
+      <h1 style="font-size:2.5em; color:#00aaff; margin-bottom:20px;">🔐 Acesso Restrito</h1>
+      <input id="senhaInput" type="password" placeholder="Digite sua senha..." style="
+        padding: 12px 20px; border-radius: 10px; border: none; font-size: 1.2em;
+        outline: none; width: 250px; text-align: center;
+      "/>
+      <div id="mensagemSenha" style="margin-top:15px; height: 20px; font-weight: bold;"></div>
+      <button id="btnValidarSenha" style="
+        margin-top: 20px; padding: 10px 25px;
+        background: linear-gradient(45deg, #00aaff, #0077cc);
+        border: none; border-radius: 25px; color: white;
+        font-size: 1em; font-weight: bold; cursor: pointer;
+      ">Entrar</button>
+    </div>
+  `;
+
+  document.body.appendChild(passwordScreen);
+
+  const input = document.getElementById('senhaInput');
+  const btn = document.getElementById('btnValidarSenha');
+  const msg = document.getElementById('mensagemSenha');
+
+  function validarSenha(senha) {
+    const hoje = new Date();
+    for (const item of validPasswords) {
+      if (item.senha === senha) {
+        const validade = new Date(item.validade);
+        if (validade >= hoje) return true;
+      }
+    }
+    return false;
+  }
+
+  btn.onclick = async () => {
+    const senhaDigitada = input.value.trim();
+    if (validarSenha(senhaDigitada)) {
+      msg.style.color = '#00ff99';
+      msg.textContent = '✅ Acesso liberado!';
+
+      // 🎉 Efeito visual de comemoração
+      const confete = document.createElement('div');
+      confete.innerHTML = '🎉🎊';
+      confete.style.cssText = `
+        position: fixed; top: 20px; font-size: 3em;
+        left: 50%; transform: translateX(-50%);
+        animation: pulso 1s ease infinite;
+      `;
+      passwordScreen.appendChild(confete);
+
+      const style = document.createElement('style');
+      style.innerHTML = `
+        @keyframes pulso {
+          0% { transform: translateX(-50%) scale(1); }
+          50% { transform: translateX(-50%) scale(1.2); }
+          100% { transform: translateX(-50%) scale(1); }
+        }
+      `;
+      document.head.appendChild(style);
+
+      await wait(2000);
+      passwordScreen.remove();
+
+      // ➕ CONTINUA: mostra splash e inicia automação
+      await showEstudioLawSplash();
+      await wait(2000);
+      await hideEstudioLawSplash();
+      await iniciarAutomacao();
+
+    } else {
+      msg.style.color = 'red';
+      msg.textContent = '❌ Senha incorreta ou expirada!';
+      input.style.border = '2px solid red';
+    }
+  };
+
+  // 🔵 Splash screen Estúdio LAW
+  const splashScreen = document.createElement('div');
+
+  async function showEstudioLawSplash() {
+    splashScreen.style.cssText = `
+      position:fixed; top:0; left:0; width:100%; height:100%;
+      z-index:9999;
+      display:flex; align-items:center; justify-content:center;
+      background: linear-gradient(-45deg, #0f1c2e, #0a1a2f, #152842, #0a1b2d);
+      background-size: 400% 400%;
+      animation: backgroundFlow 10s ease infinite;
+      user-select:none;
+      font-family:'Segoe UI', sans-serif;
+      transition: opacity 0.8s ease;
+    `;
+
+    splashScreen.innerHTML = `
+      <div style="
+        font-size: 3em;
+        font-weight: bold;
+        color: #ffffff;
+        text-shadow: 0 0 10px #00aaff, 0 0 20px #0077cc;
+        animation: glowText 2s ease-in-out infinite alternate,
+                   fadeSlideIn 1.5s ease forwards;
+        opacity: 0;
+        transform: translateY(30px);
+      ">
+        Estúdio <span style="color:#00aaff;">LAW</span>
+      </div>
+    `;
+
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes backgroundFlow {
+        0% {background-position: 0% 50%;}
+        50% {background-position: 100% 50%;}
+        100% {background-position: 0% 50%;}
+      }
+      @keyframes glowText {
+        from { text-shadow: 0 0 10px #00aaff, 0 0 20px #0077cc; }
+        to { text-shadow: 0 0 20px #00ccff, 0 0 30px #00aaff; }
+      }
+      @keyframes fadeSlideIn {
+        to { opacity: 1; transform: translateY(0); }
+      }
+    `;
+    document.head.appendChild(style);
+    document.body.appendChild(splashScreen);
+    setTimeout(() => splashScreen.style.opacity = '1', 10);
+  }
+
+  async function hideEstudioLawSplash() {
+    splashScreen.style.opacity = '0';
+    setTimeout(() => splashScreen.remove(), 1000);
+  }
+
+  // 🚀 Script principal de automação
+  async function iniciarAutomacao() {
+    const CONFIG = { delay: 1500, maxAttempts: 50 };
+    let attempts = 0, completed = 0;
+
+    const SELECTORS = [
+      'button[data-testid*="continue"]',
+      'button[data-testid*="next"]',
+      'button[data-testid*="start"]',
+      'button[data-testid*="complete"]',
+      'button[data-testid*="practice"]',
+      '.continue-btn, .next-btn, .start-btn',
+      'button:contains("Continuar")', 'button:contains("Próximo")',
+      'button:contains("Next")', 'button:contains("Start")'
+    ];
+
+    function isVisible(el) {
+      if (!el) return false;
+      const s = getComputedStyle(el);
+      return s.display !== 'none' && s.opacity !== '0' && el.offsetHeight > 0;
+    }
+
+    function findClickable() {
+      for (const selector of SELECTORS) {
+        const list = [...document.querySelectorAll('button, a[role="button"]')]
+          .filter(el => el.textContent.toLowerCase().includes(selector.split('"')[1]?.toLowerCase()) && isVisible(el));
+        if (list.length) return list[0];
+      }
+      return null;
+    }
+
+    console.log('🔁 Iniciando automação...');
+    while (attempts < CONFIG.maxAttempts) {
+      attempts++;
+      const el = findClickable();
+      if (el) {
+        el.click(); completed++;
+        console.log(`✅ [${attempts}] ${el.innerText || 'Botão'}`);
+        await wait(CONFIG.delay);
+      } else {
+        console.log('⏳ Aguardando elementos...');
+        await wait(CONFIG.delay);
+      }
+    }
+
+    console.log(`🏁 Finalizado. ${completed} ações realizadas.`);
+  }
+})();
