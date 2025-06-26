@@ -1,9 +1,7 @@
-// Estúdio LAW - Script Final com Login Hash + Token, Fogo, Som e Automação Khan Academy (completo)
+// Estúdio LAW - Script Final com Login Hash + Token, Fogo, Sem Som e Automação Khan Academy (sem automação automática)
 (async () => {
   // --- CONFIGURAÇÃO ---
   const FIREBASE_URL = 'https://estudiolaw-default-rtdb.firebaseio.com/logins.json';
-  const SOM_ABERTURA_URL = 'https://actions.google.com/sounds/v1/ambiences/fireplace_crackling.ogg';
-  const SOM_COMEMORACAO_URL = 'https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg';
 
   // --- ANTI DEVTOOLS AVANÇADO ---
   const detectDevTools = () => {
@@ -41,7 +39,7 @@
     return el;
   };
 
-  // --- TELA COMEMORAÇÃO E FOGO ---
+  // --- TELA COMEMORAÇÃO E FOGO (SEM SOM) ---
   const showOpening = () => {
     const fogo = document.createElement('div');
     fogo.innerHTML = `
@@ -49,9 +47,6 @@
         <h1 style="font-size:3em;color:#00ccff;text-shadow:0 0 20px #00aaff">🔥 Estúdio LAW 🔥</h1>
       </div>
     `;
-    const audio = new Audio(SOM_ABERTURA_URL);
-    audio.volume = 0.5;
-    audio.play();
     document.body.appendChild(fogo);
     setTimeout(() => fogo.remove(), 5000);
   };
@@ -63,9 +58,6 @@
         <div>🎉 Acesso Liberado!</div>
       </div>
     `;
-    const audio = new Audio(SOM_COMEMORACAO_URL);
-    audio.volume = 0.7;
-    audio.play();
     document.body.appendChild(c);
     setTimeout(() => c.remove(), 3000);
   };
@@ -104,7 +96,7 @@
     }
   };
 
-  // --- SCRIPT DE AUTOMAÇÃO KHAN ACADEMY ---
+  // --- SCRIPT DE AUTOMAÇÃO KHAN ACADEMY (auto click DESATIVADO) ---
   async function iniciarAutomacao(token) {
     console.log('Token validado:', token);
 
@@ -138,9 +130,13 @@
     };
 
     patchFetch();
+
+    // Loop comentado para DESATIVAR automação automática
+    /*
     while (true) {
       autoClick();
       await delayLoop(1000);
     }
+    */
   }
 })();
