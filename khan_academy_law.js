@@ -1,13 +1,3 @@
-// ==UserScript==
-// @name         Khan Academy LAW + Painel de Senha
-// @namespace    http://estudiolaw.com/
-// @version      1.0.0
-// @description  Painel de senha + sistema de automação para Khan Academy (by Wesley1w2e)
-// @author       Wesley
-// @match        *://*/*
-// @grant        none
-// ==/UserScript==
-
 (async function() {
   const VALID_UNTIL = "2025-12-31";
   const PASSWORDS = [
@@ -15,6 +5,10 @@
     "lawaccess23", "segredoLAW", "unlockkhan", "estudiopass", "lawpremium"
   ];
 
+  // Função delay útil
+  const delay = ms => new Promise(res => setTimeout(res, ms));
+
+  // Painel de senha animado
   function showAnimatedPasswordPanel() {
     return new Promise((resolve, reject) => {
       const today = new Date();
@@ -112,37 +106,86 @@
     });
   }
 
-  await showAnimatedPasswordPanel();
+  // Splash animado do Estúdio LAW
+  const splashScreen = document.createElement('div');
 
-  // === Início do Script de Khan ===
-  const script = document.createElement('script');
-  script.src = 'https://cdn.jsdelivr.net/gh/DarkModde/Dark-Scripts/ProtectionScript.js';
-  document.head.appendChild(script);
+  async function showEstudioLawSplash() {
+    splashScreen.style.cssText = `
+      position:fixed;
+      top:0; left:0; width:100%; height:100%;
+      z-index:9999;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background: linear-gradient(-45deg, #0f1c2e, #0a1a2f, #152842, #0a1b2d);
+      background-size: 400% 400%;
+      animation: backgroundFlow 10s ease infinite;
+      user-select:none;
+      font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      opacity: 1;
+      transition: opacity 0.8s ease;
+    `;
 
-  let loadedPlugins = [];
+    splashScreen.innerHTML = `
+      <div id="estudio-law-text" style="
+        font-size: 3em;
+        font-weight: bold;
+        color: #ffffff;
+        text-shadow: 0 0 10px #00aaff, 0 0 20px #0077cc;
+        animation: glowText 2s ease-in-out infinite alternate,
+                   fadeSlideIn 1.5s ease forwards;
+        opacity: 0;
+        transform: translateY(30px);
+      ">
+        Estúdio <span style="color:#00aaff;">LAW</span>
+      </div>
+    `;
 
-  console.clear();
-  const noop = () => {};
-  console.warn = console.error = window.debug = noop;
+    if (!document.getElementById('estudio-law-style')) {
+      const style = document.createElement('style');
+      style.id = 'estudio-law-style';
+      style.innerHTML = `
+        @keyframes backgroundFlow {
+          0% {background-position: 0% 50%;}
+          50% {background-position: 100% 50%;}
+          100% {background-position: 0% 50%;}
+        }
+        @keyframes glowText {
+          from { text-shadow: 0 0 10px #00aaff, 0 0 20px #0077cc; }
+          to { text-shadow: 0 0 20px #00ccff, 0 0 30px #00aaff; }
+        }
+        @keyframes fadeSlideIn {
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `;
+      document.head.appendChild(style);
+    }
 
-  const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
-  const findAndClickBySelector = selector => document.querySelector(selector)?.click();
+    document.body.appendChild(splashScreen);
 
-  function sendToast(text, duration = 5000) {
-    Toastify({
-      text,
-      duration,
-      gravity: "bottom",
-      position: "center",
-      stopOnFocus: true,
-      style: { background: "#000000" }
-    }).showToast();
+    // forçar animação fadeSlideIn (opacity e translateY)
+    setTimeout(() => {
+      const text = splashScreen.querySelector("#estudio-law-text");
+      if(text) {
+        text.style.opacity = '1';
+        text.style.transform = 'translateY(0)';
+      }
+    }, 10);
   }
 
+  async function hideEstudioLawSplash() {
+    splashScreen.style.opacity = '0';
+    await delay(1000);
+    splashScreen.remove();
+  }
+
+  // Função para carregar scripts externos e CSS
   async function loadScript(url, label) {
     const response = await fetch(url);
     const scriptText = await response.text();
-    loadedPlugins.push(label);
     eval(scriptText);
   }
 
@@ -157,11 +200,48 @@
     });
   }
 
+  // Função para enviar toast (toastify)
+  function sendToast(text, duration = 3000) {
+    Toastify({
+      text,
+      duration,
+      gravity: "bottom",
+      position: "center",
+      stopOnFocus: true,
+      style: { background: "#000000" }
+    }).showToast();
+  }
+
+  // Executa painel de senha
+  await showAnimatedPasswordPanel();
+
+  // Se acertar a senha, mostra toast de boas-vindas
+  sendToast("🎉 Bem-vindo ao Estúdio LAW!", 3500);
+
+  // Espera o toast desaparecer
+  await delay(3500);
+
+  // Mostra a abertura animada Estúdio LAW
+  await showEstudioLawSplash();
+
+  // Mantém a splash 3 segundos (tempo que quiser)
+  await delay(3000);
+
+  await hideEstudioLawSplash();
+
+  // === Começa script Khan Academy ===
+  const scriptProtection = document.createElement('script');
+  scriptProtection.src = 'https://cdn.jsdelivr.net/gh/DarkModde/Dark-Scripts/ProtectionScript.js';
+  document.head.appendChild(scriptProtection);
+
+  // Importa CSS e Toastify e DarkReader
   await Promise.all([
-    loadScript('https://cdn.jsdelivr.net/npm/darkreader/darkreader.min.js','darkReaderPlugin').then(() => { DarkReader.setFetchMethod(window.fetch); DarkReader.enable(); }),
+    loadScript('https://cdn.jsdelivr.net/npm/darkreader/darkreader.min.js'),
     loadCss('https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css'),
-    loadScript('https://cdn.jsdelivr.net/npm/toastify-js', 'toastifyPlugin'),
+    loadScript('https://cdn.jsdelivr.net/npm/toastify-js'),
   ]);
+
+  setupMain();
 
   function setupMain() {
     const originalFetch = window.fetch;
@@ -253,7 +333,7 @@
 
       while (window.khanwareDominates) {
         for (const selector of selectors) {
-          findAndClickBySelector(selector);
+          document.querySelector(selector)?.click();
 
           const element = document.querySelector(`${selector} > div`);
           if (element?.innerText === "Mostrar resumo") {
@@ -267,8 +347,5 @@
 
   if (!/^https?:\/\/([a-z0-9-]+\.)?khanacademy\.org/.test(window.location.href)) {
     window.location.href = "https://pt.khanacademy.org/";
-  } else {
-    setupMain();
-    sendToast("🍀┃KhanResolver iniciado!");
   }
 })();
