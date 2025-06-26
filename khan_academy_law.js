@@ -11,7 +11,7 @@
 // ==/UserScript==
 
 /* ==== PAINEL DE SENHA ANIMADO ESTÚDIO LAW ==== */
-// Agora cada senha tem sua validade individual, fácil de editar!
+// Agora cada senha tem validade individual, só editar aqui!
 const PASSWORDS = [
   { senha: "law2025@1",      validade: "2025-12-31" },
   { senha: "khanlaw!2",      validade: "2025-12-31" },
@@ -50,7 +50,7 @@ function showAnimatedPasswordPanel() {
       backdrop-filter: blur(4px);
       border: 1.8px solid #00aaff88;
     `;
-    // Maior validade para exibir no painel
+    // Maior validade para o painel
     const maxValidDate = PASSWORDS.map(p=>p.validade).sort().reverse()[0];
     panel.innerHTML = `
       <div style="font-size:2.1em;font-weight:bold;color:#fff;text-shadow:0 0 8px #00aaff77;">
