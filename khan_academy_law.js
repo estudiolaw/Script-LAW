@@ -13,37 +13,83 @@
     UID: "00000"
   };
 
-  const splashScreen = document.createElement('div');
+  const splashScreen = document.createElement('splashScreen');
   let loadedPlugins = [];
 
   const delay = ms => new Promise(res => setTimeout(res, ms));
 
-  async function showSplashScreen() {
+  // ----------- Estúdio LAW Splash Animada ----------------
+
+  async function showEstudioLawSplash() {
     splashScreen.style.cssText = `
       position: fixed;
-      top: 0; left: 0;
-      width: 100vw; height: 100vh;
-      background: linear-gradient(to bottom right, #0f172a, #1e293b);
+      top: 0; left: 0; width: 100%; height: 100%;
+      z-index: 9999;
       display: flex;
       align-items: center;
       justify-content: center;
-      z-index: 9999;
+      background: linear-gradient(-45deg, #0f1c2e, #0a1a2f, #152842, #0a1b2d);
+      background-size: 400% 400%;
+      animation: backgroundFlow 10s ease infinite;
+      user-select: none;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       opacity: 0;
-      transition: opacity 1s ease;
-      font-family: sans-serif;
-      color: white;
-      font-size: 2.5rem;
-      letter-spacing: 2px;
+      transition: opacity 0.5s ease;
     `;
-    splashScreen.innerHTML = `🔥 ESTÚDIO <span style="color:#60a5fa">LAW</span>`;
+
+    splashScreen.innerHTML = `
+      <div id="estudio-law-text" style="
+        font-size: 3em;
+        font-weight: bold;
+        color: #ffffff;
+        text-shadow: 0 0 10px #00aaff, 0 0 20px #0077cc;
+        animation: glowText 2s ease-in-out infinite alternate,
+                   fadeSlideIn 1.5s ease forwards;
+        opacity: 0;
+        transform: translateY(30px);
+      ">
+        Estúdio <span style="color:#00aaff;">LAW</span>
+      </div>
+    `;
+
+    if (!document.getElementById('estudio-law-style')) {
+      const style = document.createElement('style');
+      style.id = 'estudio-law-style';
+      style.innerHTML = `
+        @keyframes backgroundFlow {
+          0% {background-position: 0% 50%;}
+          50% {background-position: 100% 50%;}
+          100% {background-position: 0% 50%;}
+        }
+
+        @keyframes glowText {
+          from { text-shadow: 0 0 10px #00aaff, 0 0 20px #0077cc; }
+          to { text-shadow: 0 0 20px #00ccff, 0 0 30px #00aaff; }
+        }
+
+        @keyframes fadeSlideIn {
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+
     document.body.appendChild(splashScreen);
-    setTimeout(() => splashScreen.style.opacity = '1', 100);
+    // Forçar o fade in
+    await delay(10);
+    splashScreen.style.opacity = '1';
   }
 
-  async function hideSplashScreen() {
+  async function hideEstudioLawSplash() {
     splashScreen.style.opacity = '0';
-    setTimeout(() => splashScreen.remove(), 800);
+    await delay(1000);
+    splashScreen.remove();
   }
+
+  // ----------- Funções auxiliares ----------------
 
   async function loadScript(url, label = "plugin") {
     try {
@@ -126,7 +172,7 @@
   }
 
   async function setupPlugins() {
-    // Suas funções vão aqui (preencha com lógica própria)
+    // Aqui você pode colocar suas funções/auto answer etc
     function autoAnswer() {
       console.log("📘 Auto Khan ativado (placeholder)");
     }
@@ -153,23 +199,25 @@
     await loadCss("https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css");
     await loadScript("https://cdn.jsdelivr.net/npm/toastify-js", "Toastify");
 
-    await showSplashScreen();
+    await showEstudioLawSplash();
     await fetchUserProfile();
 
     sendToast("✅ LAW Injetado com sucesso!");
     await delay(400);
-    sendToast(`👤 Bem-vindo(a)`);
+    sendToast(`👤 Bem-vindo(a) ${user.nickname}`);
     if (device.apple) {
       sendToast("🍏 Que tal um Samsung?");
     }
 
     await setupPlugins();
-    await delay(500);
-    hideSplashScreen();
+
+    await delay(1000);
+    await hideEstudioLawSplash();
 
     console.clear();
     loadedPlugins.forEach(p => sendToast(`🔧 Plugin carregado: ${p}`, 2000));
   }
 
   initLAW();
+
 })();
