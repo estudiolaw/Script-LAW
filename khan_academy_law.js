@@ -15,29 +15,25 @@
     overlay.style.cssText = `
       position: fixed;
       top: 0; left: 0; width: 100vw; height: 100vh;
-      background-color: #0d1b3dcc;
+      background-color: rgba(0, 0, 0, 0.5);
       display: flex;
-      flex-direction: column;
       justify-content: center;
       align-items: center;
       z-index: 9999999;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       color: white;
-      user-select: none;
-      animation: backgroundFlow 10s ease infinite;
-      background: linear-gradient(-45deg, #0f1c2e, #0a1a2f, #152842, #0a1b2d);
-      background-size: 400% 400%;
+      animation: fadeIn 1s ease-in-out;
     `;
 
     overlay.innerHTML = `
-      <div style="background: rgba(17, 42, 97, 0.9); padding: 30px 40px; border-radius: 12px; box-shadow: 0 0 15px #00aaffcc; text-align: center; max-width: 360px; width: 90vw;">
-        <h2 style="margin-bottom: 20px; font-weight: 700;">🔐 Acesso Restrito</h2>
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <input id="law-password-input" type="password" placeholder="Digite a senha" style="width: 80%; padding: 12px 15px; font-size: 1.1em; border-radius: 8px; border: none; outline: none;">
-          <span id="toggle-eye" style="cursor: pointer; font-size: 1.5em;">👁️</span>
+      <div style="background: linear-gradient(145deg, #3f51b5, #00bcd4); padding: 40px 60px; border-radius: 20px; box-shadow: 0px 0px 30px rgba(0, 0, 0, 0.3); text-align: center; width: 350px; animation: zoomIn 0.5s ease-in-out;">
+        <h2 style="margin-bottom: 30px; font-weight: 700; color: #fff;">🔐 Acesso Restrito</h2>
+        <div style="position: relative; margin-bottom: 20px;">
+          <input id="law-password-input" type="password" placeholder="Digite a senha" style="width: 100%; padding: 12px 20px; font-size: 1.1em; border-radius: 8px; border: 2px solid #fff; outline: none; color: #fff; background: rgba(255, 255, 255, 0.2); transition: border-color 0.3s ease;">
+          <span id="toggle-eye" style="position: absolute; right: 10px; top: 10px; font-size: 1.5em; cursor: pointer; color: #fff;">👁️</span>
         </div>
-        <button id="law-password-btn" style="width: 100%; padding: 12px; background: #00aaff; border: none; border-radius: 8px; font-size: 1.2em; color: white; cursor: pointer; font-weight: 600; transition: background 0.3s;">Entrar</button>
-        <p id="law-password-msg" style="margin-top: 15px; color: #ff5555; min-height: 24px; font-weight: 600;"></p>
+        <button id="law-password-btn" style="width: 100%; padding: 12px 0; background: #00bcd4; border: none; border-radius: 8px; font-size: 1.2em; color: white; cursor: pointer; font-weight: 600; transition: background 0.3s ease;">Entrar</button>
+        <p id="law-password-msg" style="margin-top: 20px; color: #ff5555; font-weight: 600;"></p>
       </div>
     `;
 
@@ -70,7 +66,7 @@
     celebration.style.cssText = `
       position: fixed;
       top: 0; left: 0; width: 100vw; height: 100vh;
-      background-color: #0d1b3ddd;
+      background-color: rgba(0, 0, 0, 0.6);
       display: flex;
       justify-content: center;
       align-items: center;
@@ -415,5 +411,4 @@
     return;
   }
 
-  // --- Executa a tela de senha para liberar o script ---
 })();
