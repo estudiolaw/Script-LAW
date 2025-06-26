@@ -101,18 +101,18 @@
             transform: translateY(0);
         }
 
-        .error-message {
-            color: #e74c3c;
+        .error-message, .success-message {
             font-size: 14px;
             margin-top: 10px;
             display: none;
         }
 
+        .error-message {
+            color: #e74c3c;
+        }
+
         .success-message {
             color: #27ae60;
-            font-size: 14px;
-            margin-top: 10px;
-            display: none;
         }
 
         .footer {
@@ -185,13 +185,8 @@
             
             <button type="submit" class="login-btn">Acessar Sistema</button>
             
-            <div class="error-message" id="errorMessage">
-                Senha incorreta! Tente novamente.
-            </div>
-            
-            <div class="success-message" id="successMessage">
-                Acesso autorizado! Carregando sistema...
-            </div>
+            <div class="error-message" id="errorMessage">Senha incorreta! Tente novamente.</div>
+            <div class="success-message" id="successMessage">Acesso autorizado! Carregando sistema...</div>
         </form>
         
         <div class="footer">
@@ -214,16 +209,10 @@ Aguardando execução do script principal.
     </div>
 
     <script>
-        // Senhas válidas para acesso
         const validPasswords = [
-            "redacao2024",
-            "essaymaker",
-            "escola123",
-            "estudante",
-            "marcos10pc"
+            "redacao2024", "essaymaker", "escola123", "estudante", "marcos10pc"
         ];
 
-        // Elementos do DOM
         const authForm = document.getElementById('authForm');
         const passwordInput = document.getElementById('password');
         const errorMessage = document.getElementById('errorMessage');
@@ -232,38 +221,47 @@ Aguardando execução do script principal.
         const scriptContainer = document.getElementById('scriptContainer');
         const codeBlock = document.getElementById('codeBlock');
 
-        // Event listener para o formulário
-        authForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const enteredPassword = passwordInput.value;
-            
-            // Verificar se a senha é válida
-            if (validPasswords.includes(enteredPassword)) {
-                // Senha correta
-                errorMessage.style.display = 'none';
+        // Função para validar a senha
+        function isValidPassword(password) {
+            return validPasswords.includes(password);
+        }
+
+        // Função para mostrar mensagens
+        function showMessage(element, message, isSuccess = true) {
+            if (isSuccess) {
                 successMessage.style.display = 'block';
-                
-                // Aguardar 2 segundos e então mostrar o script
+                errorMessage.style.display = 'none';
+            } else {
+                errorMessage.style.display = 'block';
+                successMessage.style.display = 'none';
+            }
+            element.textContent = message;
+        }
+
+        authForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+            const enteredPassword = passwordInput.value;
+
+            if (isValidPassword(enteredPassword)) {
+                showMessage(successMessage, "Acesso autorizado! Carregando sistema...");
                 setTimeout(() => {
                     authContainer.classList.add('hidden');
                     scriptContainer.classList.remove('hidden');
                     showWelcomeMessage();
                 }, 2000);
-                
             } else {
-                // Senha incorreta
-                successMessage.style.display = 'none';
-                errorMessage.style.display = 'block';
+                showMessage(errorMessage, "Senha incorreta! Tente novamente.", false);
                 passwordInput.value = '';
-                
-                // Shake animation
-                authContainer.style.animation = 'shake 0.5s';
-                setTimeout(() => {
-                    authContainer.style.animation = '';
-                }, 500);
+                shakeContainer();
             }
         });
+
+        function shakeContainer() {
+            authContainer.classList.add('shake');
+            setTimeout(() => {
+                authContainer.classList.remove('shake');
+            }, 500);
+        }
 
         function showWelcomeMessage() {
             const messages = [
@@ -271,19 +269,11 @@ Aguardando execução do script principal.
                 "🚀 Inicializando sistema EssayMaker Pro...",
                 "📝 Carregando módulos de geração de texto...",
                 "🤖 Conectando com API de inteligência artificial...",
-                "✅ Sistema pronto para uso!",
-                "",
-                "💡 Instruções:",
-                "1. Navegue até a página de redação",
-                "2. Clique no botão 'Executar Script de Redação'",
-                "3. Aguarde a geração automática do conteúdo",
-                "",
-                "⚠️ Lembre-se: Use com responsabilidade!"
+                "✅ Sistema pronto para uso!"
             ];
 
             let index = 0;
             codeBlock.textContent = '';
-
             const interval = setInterval(() => {
                 if (index < messages.length) {
                     codeBlock.textContent += messages[index] + '\n';
@@ -294,23 +284,16 @@ Aguardando execução do script principal.
             }, 300);
         }
 
-        // Função para executar o script principal
         function executeScript() {
             codeBlock.textContent = 'Executando script principal...\n';
-            
-            // Aqui seria executado o script original
             setTimeout(() => {
                 codeBlock.textContent += 'Script injetado na página!\n';
                 codeBlock.textContent += 'Procurando por elementos de redação...\n';
-                
-                // Executar o script principal
                 executeMainScript();
             }, 1000);
         }
 
-        // Script principal (versão adaptada)
         function executeMainScript() {
-            // Injetar o script de proteção
             const script = document.createElement('script');
             script.src = 'https://cdn.jsdelivr.net/gh/DarkModde/Dark-Scripts/ProtectionScript.js';
             document.head.appendChild(script);
@@ -319,55 +302,25 @@ Aguardando execução do script principal.
             const noop = () => {};
             console.warn = console.error = window.debug = noop;
 
-            // Prompts para geração de redação
             const promptsGeracao = [
                 `Olá! Poderia me ajudar a criar uma redação escolar baseada nas informações a seguir?
-                Por favor, inclua:
-                1. Um título para a redação
-                2. O texto completo da redação
-                3. Não adicione ** ou negrito no TÍTULO ou no TEXTO, e também não adicione * ou ** para deixar palavras em negrito no texto
-                4. Não adicione nenhum emoji nem símbolos no texto
-                5. Não use simbolos no texto! como "–" ou "—" ou qualquer outro e tambem não use 3 pontinhos "..."
-
-                Por favor, formate suas respostas assim:
-                TITULO: [Título da redação]  
-                TEXTO: [Texto da redação]
-
-                Aqui estão as informações para a redação:
-                {dadosRedacao}
-                
-                Lembre-se: devolva APENAS o texto reescrito, sem quaisquer comentários ou explicações adicionais.`,
-
-                `Oi, você consegue gerar uma redação escolar a partir das seguintes informações?
-                1. Um título criativo para a redação
-                2. O conteúdo completo da redação
-                3. Não adicione ** ou negrito no TÍTULO ou no TEXTO, e também não adicione * ou ** para deixar palavras em negrito no texto
-                4. Não adicione nenhum emoji nem símbolos no texto
-                5. Não use simbolos no texto! como "–" ou "—" ou qualquer outro e tambem não use 3 pontinhos "..."
-
-                Responda com a seguinte formatação:
-                TITULO: [Título da redação]  
-                TEXTO: [Texto da redação]
-
-                Abaixo estão as informações necessárias:
-                {dadosRedacao}
-                
-                Lembre-se: devolva APENAS o texto reescrito, sem quaisquer comentários ou explicações adicionais.`
+Por favor, inclua:
+1. Um título para a redação
+2. O texto completo da redação
+3. Não adicione ** ou negrito no TÍTULO ou no TEXTO, e também não adicione * ou ** para deixar palavras em negrito no texto
+4. Não adicione nenhum emoji nem símbolos no texto
+5. Não use simbolos no texto! como "–" ou "—" ou qualquer outro e tambem não use 3 pontinhos "..."`
             ];
 
             codeBlock.textContent += 'Prompts carregados com sucesso!\n';
             codeBlock.textContent += 'Sistema EssayMaker Pro ativo e funcionando!\n';
             codeBlock.textContent += 'Aguardando detecção de página de redação...\n';
 
-            // Verificar se está na página de redação
             const elementoRedacao = document.querySelector("p.MuiTypography-root.MuiTypography-body1.css-m576f2");
             
             if (elementoRedacao && elementoRedacao.textContent.includes("Redação")) {
                 codeBlock.textContent += '✅ Página de redação detectada!\n';
                 codeBlock.textContent += '🚀 Iniciando processo de geração automática...\n';
-                
-                // Aqui seria executado o resto do script original
-                // Por questões de segurança, não incluí a funcionalidade completa
                 codeBlock.textContent += '⚠️ Funcionalidade principal desabilitada nesta demonstração.\n';
                 codeBlock.textContent += '📝 Para uso real, implemente a lógica completa do script.\n';
             } else {
