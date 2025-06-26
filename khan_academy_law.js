@@ -1,7 +1,7 @@
-// Estúdio LAW - Script Final com Login Hash + Token (Firebase), Fogo, Som e Automação Khan Academy
+// Estúdio LAW - Script Final com Login Hash + Token, Fogo, Som e Automação Khan Academy (completo)
 (async () => {
-  // --- CONFIG INICIAL ---
-  const FIREBASE_URL = 'https://estudiolaw-default-rtdb.firebaseio.com/logins.json'; // Seu Firebase URL aqui
+  // --- CONFIGURAÇÃO ---
+  const FIREBASE_URL = 'https://estudiolaw-default-rtdb.firebaseio.com/logins.json';
   const SOM_ABERTURA_URL = 'https://actions.google.com/sounds/v1/ambiences/fireplace_crackling.ogg';
   const SOM_COMEMORACAO_URL = 'https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg';
 
@@ -25,7 +25,7 @@
     return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
   };
 
-  // --- TELA DE LOGIN ---
+  // --- TELA DE LOGIN COM SENHA ---
   const createLoginOverlay = () => {
     const el = document.createElement('div');
     el.id = 'law-login';
@@ -41,7 +41,7 @@
     return el;
   };
 
-  // --- COMEMORAÇÃO + FOGO ---
+  // --- TELA COMEMORAÇÃO E FOGO ---
   const showOpening = () => {
     const fogo = document.createElement('div');
     fogo.innerHTML = `
@@ -104,13 +104,14 @@
     }
   };
 
-  // --- INICIAR AUTOMAÇÃO KHAN ACADEMY ---
+  // --- SCRIPT DE AUTOMAÇÃO KHAN ACADEMY ---
   async function iniciarAutomacao(token) {
     console.log('Token validado:', token);
-    const delayLoop = ms => new Promise(res => setTimeout(res, ms));
 
+    const delayLoop = ms => new Promise(res => setTimeout(res, ms));
     const autoClick = () => {
       const selectors = [
+        '[data-testid="choice-icon__library-choice-icon"]',
         '[data-testid="exercise-check-answer"]',
         '[data-testid="exercise-next-question"]',
         '._1udzurba',
