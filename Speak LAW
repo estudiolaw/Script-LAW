@@ -1,211 +1,337 @@
-(async function () {
-  'use strict';
+/**
+ * 🎤 SPEAK.JS MELHORADO - Síntese de Voz Moderna
+ * Versão otimizada com ES6+, melhor performance e mais funcionalidades
+ */
 
-  // 🟦 Lista de senhas válidas com data de expiração (ano-mês-dia)
-  const validPasswords = [
-    { senha: "1BMIDIAS", validade: "2025-12-31" },
-    { senha: "law2024", validade: "2025-08-01" },
-    { senha: "speakbot", validade: "2025-07-15" },
-    { senha: "acesso01", validade: "2025-09-30" },
-    { senha: "testeOK", validade: "2025-11-20" },
-    { senha: "open123", validade: "2025-12-01" },
-    { senha: "powerUser", validade: "2025-10-10" },
-    { senha: "devAccess", validade: "2025-08-25" },
-    { senha: "lawAI", validade: "2025-07-30" },
-    { senha: "superSpeak", validade: "2025-12-25" }
-  ];
-
-  // Utilitário de espera
-  function wait(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
+class ModernSpeech {
+  constructor(options = {}) {
+    this.config = {
+      profile: options.profile ?? true,
+      fallbackToNative: options.fallbackToNative ?? true,
+      autoplay: options.autoplay ?? true,
+      volume: options.volume ?? 1.0,
+      rate: options.rate ?? 1.0,
+      pitch: options.pitch ?? 1.0,
+      voice: options.voice ?? null,
+      ...options
+    };
+    
+    this.worker = null;
+    this.audioContext = null;
+    this.isPlaying = false;
+    this.queue = [];
+    
+    this.initializeWorker();
+    this.initializeAudioContext();
   }
 
-  // 🛡️ PAINEL DE SENHA
-  const passwordScreen = document.createElement('div');
-  passwordScreen.style.cssText = `
-    position:fixed; top:0; left:0; width:100%; height:100%;
-    background: linear-gradient(135deg, #1a1f2e, #0e1624);
-    display:flex; flex-direction:column; align-items:center; justify-content:center;
-    color: white; font-family: 'Segoe UI', sans-serif; z-index:9999;
-  `;
-
-  passwordScreen.innerHTML = `
-    <div style="text-align:center;">
-      <h1 style="font-size:2.5em; color:#00aaff; margin-bottom:20px;">🔐 Acesso Restrito</h1>
-      <input id="senhaInput" type="password" placeholder="Digite sua senha..." style="
-        padding: 12px 20px; border-radius: 10px; border: none; font-size: 1.2em;
-        outline: none; width: 250px; text-align: center;
-      "/>
-      <div id="mensagemSenha" style="margin-top:15px; height: 20px; font-weight: bold;"></div>
-      <button id="btnValidarSenha" style="
-        margin-top: 20px; padding: 10px 25px;
-        background: linear-gradient(45deg, #00aaff, #0077cc);
-        border: none; border-radius: 25px; color: white;
-        font-size: 1em; font-weight: bold; cursor: pointer;
-      ">Entrar</button>
-    </div>
-  `;
-
-  document.body.appendChild(passwordScreen);
-
-  const input = document.getElementById('senhaInput');
-  const btn = document.getElementById('btnValidarSenha');
-  const msg = document.getElementById('mensagemSenha');
-
-  function validarSenha(senha) {
-    const hoje = new Date();
-    for (const item of validPasswords) {
-      if (item.senha === senha) {
-        const validade = new Date(item.validade);
-        if (validade >= hoje) return true;
-      }
+  // 🔧 Inicializa Worker com fallback
+  initializeWorker() {
+    try {
+      this.worker = new Worker('speakWorker.js');
+      console.log('✅ Speech Worker carregado');
+    } catch (error) {
+      console.warn('⚠️ Worker não disponível, usando fallback:', error.message);
     }
-    return false;
   }
 
-  btn.onclick = async () => {
-    const senhaDigitada = input.value.trim();
-    if (validarSenha(senhaDigitada)) {
-      msg.style.color = '#00ff99';
-      msg.textContent = '✅ Acesso liberado!';
+  // 🎵 Inicializa Web Audio API
+  initializeAudioContext() {
+    try {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      this.audioContext = new AudioContext();
+      console.log('✅ Web Audio API inicializada');
+    } catch (error) {
+      console.warn('⚠️ Web Audio API não disponível:', error.message);
+    }
+  }
 
-      // 🎉 Efeito visual de comemoração
-      const confete = document.createElement('div');
-      confete.innerHTML = '🎉🎊';
-      confete.style.cssText = `
-        position: fixed; top: 20px; font-size: 3em;
-        left: 50%; transform: translateX(-50%);
-        animation: pulso 1s ease infinite;
-      `;
-      passwordScreen.appendChild(confete);
+  // 📊 Parseia arquivo WAV otimizado
+  parseWav(wavBuffer) {
+    const view = new DataView(wavBuffer.buffer || wavBuffer);
+    
+    // Verifica header WAV
+    const riff = String.fromCharCode(...new Uint8Array(wavBuffer, 0, 4));
+    if (riff !== 'RIFF') throw new Error('❌ Não é um arquivo WAV válido');
+    
+    const compression = view.getUint16(20, true);
+    const channels = view.getUint16(22, true);
+    const sampleRate = view.getUint32(24, true);
+    const bitsPerSample = view.getUint16(34, true);
+    
+    if (compression !== 1) throw new Error('❌ Compressão inválida, esperado PCM');
+    if (channels !== 1) throw new Error('❌ Número de canais inválido, esperado mono');
+    
+    return {
+      sampleRate,
+      bitsPerSample,
+      channels,
+      samples: new Uint8Array(wavBuffer, 44),
+      duration: (wavBuffer.length - 44) / (sampleRate * channels * (bitsPerSample / 8))
+    };
+  }
 
-      const style = document.createElement('style');
-      style.innerHTML = `
-        @keyframes pulso {
-          0% { transform: translateX(-50%) scale(1); }
-          50% { transform: translateX(-50%) scale(1.2); }
-          100% { transform: translateX(-50%) scale(1); }
+  // 🎯 Converte para Base64 otimizado
+  arrayBufferToBase64(buffer) {
+    const bytes = new Uint8Array(buffer);
+    const binary = Array.from(bytes, byte => String.fromCharCode(byte)).join('');
+    return btoa(binary);
+  }
+
+  // 🔊 Reproduz usando Web Audio API (melhor performance)
+  async playWebAudio(wavData) {
+    if (!this.audioContext) return false;
+    
+    try {
+      const audioBuffer = await this.audioContext.decodeAudioData(wavData.samples.buffer.slice());
+      const source = this.audioContext.createBufferSource();
+      const gainNode = this.audioContext.createGain();
+      
+      source.buffer = audioBuffer;
+      source.playbackRate.value = this.config.rate;
+      gainNode.gain.value = this.config.volume;
+      
+      source.connect(gainNode);
+      gainNode.connect(this.audioContext.destination);
+      
+      return new Promise((resolve) => {
+        source.onended = () => {
+          this.isPlaying = false;
+          resolve();
+        };
+        
+        this.isPlaying = true;
+        source.start(0);
+      });
+      
+    } catch (error) {
+      console.warn('⚠️ Web Audio falhou:', error.message);
+      return false;
+    }
+  }
+
+  // 🎵 Reproduz usando HTML Audio Element (fallback)
+  async playHTMLAudio(wavBuffer) {
+    return new Promise((resolve, reject) => {
+      try {
+        const base64 = this.arrayBufferToBase64(wavBuffer);
+        const audio = new Audio(`data:audio/wav;base64,${base64}`);
+        
+        audio.volume = this.config.volume;
+        audio.playbackRate = this.config.rate;
+        
+        audio.onended = () => {
+          this.isPlaying = false;
+          resolve();
+        };
+        
+        audio.onerror = (error) => {
+          console.error('❌ Erro no HTML Audio:', error);
+          reject(error);
+        };
+        
+        this.isPlaying = true;
+        audio.play();
+        
+      } catch (error) {
+        reject(error);
+      }
+    });
+  }
+
+  // 🗣️ Usa Speech Synthesis API nativa (fallback final)
+  async playNativeSpeech(text, options = {}) {
+    if (!('speechSynthesis' in window)) {
+      throw new Error('❌ Speech Synthesis API não disponível');
+    }
+    
+    return new Promise((resolve, reject) => {
+      const utterance = new SpeechSynthesisUtterance(text);
+      
+      utterance.volume = options.volume ?? this.config.volume;
+      utterance.rate = options.rate ?? this.config.rate;
+      utterance.pitch = options.pitch ?? this.config.pitch;
+      
+      if (this.config.voice) {
+        const voices = speechSynthesis.getVoices();
+        const selectedVoice = voices.find(voice => 
+          voice.name.includes(this.config.voice) || 
+          voice.lang.includes(this.config.voice)
+        );
+        if (selectedVoice) utterance.voice = selectedVoice;
+      }
+      
+      utterance.onend = () => {
+        this.isPlaying = false;
+        resolve();
+      };
+      
+      utterance.onerror = (error) => {
+        console.error('❌ Erro na síntese nativa:', error);
+        reject(error);
+      };
+      
+      this.isPlaying = true;
+      speechSynthesis.speak(utterance);
+    });
+  }
+
+  // 🎤 Função principal de síntese de voz
+  async speak(text, options = {}) {
+    const startTime = performance.now();
+    const mergedOptions = { ...this.config, ...options };
+    
+    try {
+      console.log(`🎤 Sintetizando: "${text.substring(0, 50)}${text.length > 50 ? '...' : ''}"`);
+      
+      // Método 1: Worker + WAV customizado
+      if (this.worker && !mergedOptions.noWorker) {
+        try {
+          const wavData = await this.synthesizeWithWorker(text, mergedOptions);
+          const success = await this.playWebAudio(wavData) || await this.playHTMLAudio(wavData);
+          if (success !== false) {
+            this.logPerformance('Worker + Web Audio', startTime);
+            return;
+          }
+        } catch (error) {
+          console.warn('⚠️ Worker falhou:', error.message);
         }
-      `;
-      document.head.appendChild(style);
-
-      await wait(2000);
-      passwordScreen.remove();
-
-      // ➕ CONTINUA: mostra splash e inicia automação
-      await showEstudioLawSplash();
-      await wait(2000);
-      await hideEstudioLawSplash();
-      await iniciarAutomacao();
-
-    } else {
-      msg.style.color = 'red';
-      msg.textContent = '❌ Senha incorreta ou expirada!';
-      input.style.border = '2px solid red';
+      }
+      
+      // Método 2: Speech Synthesis API nativa
+      if (mergedOptions.fallbackToNative) {
+        await this.playNativeSpeech(text, mergedOptions);
+        this.logPerformance('Speech Synthesis API', startTime);
+        return;
+      }
+      
+      throw new Error('❌ Nenhum método de síntese disponível');
+      
+    } catch (error) {
+      console.error('❌ Erro na síntese de voz:', error);
+      throw error;
     }
-  };
-
-  // 🔵 Splash screen Estúdio LAW
-  const splashScreen = document.createElement('div');
-
-  async function showEstudioLawSplash() {
-    splashScreen.style.cssText = `
-      position:fixed; top:0; left:0; width:100%; height:100%;
-      z-index:9999;
-      display:flex; align-items:center; justify-content:center;
-      background: linear-gradient(-45deg, #0f1c2e, #0a1a2f, #152842, #0a1b2d);
-      background-size: 400% 400%;
-      animation: backgroundFlow 10s ease infinite;
-      user-select:none;
-      font-family:'Segoe UI', sans-serif;
-      transition: opacity 0.8s ease;
-    `;
-
-    splashScreen.innerHTML = `
-      <div style="
-        font-size: 3em;
-        font-weight: bold;
-        color: #ffffff;
-        text-shadow: 0 0 10px #00aaff, 0 0 20px #0077cc;
-        animation: glowText 2s ease-in-out infinite alternate,
-                   fadeSlideIn 1.5s ease forwards;
-        opacity: 0;
-        transform: translateY(30px);
-      ">
-        Estúdio <span style="color:#00aaff;">LAW</span>
-      </div>
-    `;
-
-    const style = document.createElement('style');
-    style.textContent = `
-      @keyframes backgroundFlow {
-        0% {background-position: 0% 50%;}
-        50% {background-position: 100% 50%;}
-        100% {background-position: 0% 50%;}
-      }
-      @keyframes glowText {
-        from { text-shadow: 0 0 10px #00aaff, 0 0 20px #0077cc; }
-        to { text-shadow: 0 0 20px #00ccff, 0 0 30px #00aaff; }
-      }
-      @keyframes fadeSlideIn {
-        to { opacity: 1; transform: translateY(0); }
-      }
-    `;
-    document.head.appendChild(style);
-    document.body.appendChild(splashScreen);
-    setTimeout(() => splashScreen.style.opacity = '1', 10);
   }
 
-  async function hideEstudioLawSplash() {
-    splashScreen.style.opacity = '0';
-    setTimeout(() => splashScreen.remove(), 1000);
+  // 🔄 Síntese usando Worker
+  async synthesizeWithWorker(text, options) {
+    return new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        reject(new Error('⏰ Timeout do Worker'));
+      }, 10000);
+      
+      this.worker.onmessage = (event) => {
+        clearTimeout(timeout);
+        resolve(this.parseWav(event.data));
+      };
+      
+      this.worker.onerror = (error) => {
+        clearTimeout(timeout);
+        reject(error);
+      };
+      
+      this.worker.postMessage({ text, args: options });
+    });
   }
 
-  // 🚀 Script principal de automação
-  async function iniciarAutomacao() {
-    const CONFIG = { delay: 1500, maxAttempts: 50 };
-    let attempts = 0, completed = 0;
-
-    const SELECTORS = [
-      'button[data-testid*="continue"]',
-      'button[data-testid*="next"]',
-      'button[data-testid*="start"]',
-      'button[data-testid*="complete"]',
-      'button[data-testid*="practice"]',
-      '.continue-btn, .next-btn, .start-btn',
-      'button:contains("Continuar")', 'button:contains("Próximo")',
-      'button:contains("Next")', 'button:contains("Start")'
-    ];
-
-    function isVisible(el) {
-      if (!el) return false;
-      const s = getComputedStyle(el);
-      return s.display !== 'none' && s.opacity !== '0' && el.offsetHeight > 0;
+  // 📊 Log de performance
+  logPerformance(method, startTime) {
+    if (this.config.profile) {
+      const duration = (performance.now() - startTime).toFixed(2);
+      console.log(`⚡ ${method}: ${duration}ms`);
     }
-
-    function findClickable() {
-      for (const selector of SELECTORS) {
-        const list = [...document.querySelectorAll('button, a[role="button"]')]
-          .filter(el => el.textContent.toLowerCase().includes(selector.split('"')[1]?.toLowerCase()) && isVisible(el));
-        if (list.length) return list[0];
-      }
-      return null;
-    }
-
-    console.log('🔁 Iniciando automação...');
-    while (attempts < CONFIG.maxAttempts) {
-      attempts++;
-      const el = findClickable();
-      if (el) {
-        el.click(); completed++;
-        console.log(`✅ [${attempts}] ${el.innerText || 'Botão'}`);
-        await wait(CONFIG.delay);
-      } else {
-        console.log('⏳ Aguardando elementos...');
-        await wait(CONFIG.delay);
-      }
-    }
-
-    console.log(`🏁 Finalizado. ${completed} ações realizadas.`);
   }
-})();
+
+  // ⏸️ Para a síntese atual
+  stop() {
+    this.isPlaying = false;
+    
+    if ('speechSynthesis' in window) {
+      speechSynthesis.cancel();
+    }
+    
+    if (this.audioContext) {
+      try {
+        this.audioContext.suspend();
+      } catch (error) {
+        console.warn('⚠️ Erro ao pausar AudioContext:', error);
+      }
+    }
+  }
+
+  // 🔧 Configurações dinâmicas
+  setConfig(newConfig) {
+    this.config = { ...this.config, ...newConfig };
+  }
+
+  // 📋 Lista vozes disponíveis
+  getAvailableVoices() {
+    if ('speechSynthesis' in window) {
+      return speechSynthesis.getVoices().map(voice => ({
+        name: voice.name,
+        lang: voice.lang,
+        isDefault: voice.default
+      }));
+    }
+    return [];
+  }
+
+  // 📊 Status atual
+  getStatus() {
+    return {
+      isPlaying: this.isPlaying,
+      hasWorker: !!this.worker,
+      hasWebAudio: !!this.audioContext,
+      hasSpeechSynthesis: 'speechSynthesis' in window,
+      config: this.config
+    };
+  }
+}
+
+// 🚀 Instância global para compatibilidade
+const modernSpeech = new ModernSpeech();
+
+// 📝 Função compatível com a API original
+function speak(text, args = {}) {
+  return modernSpeech.speak(text, args);
+}
+
+// 🎯 Funções de conveniência
+const SpeechUtils = {
+  // Fala com configurações específicas
+  speakWith: (text, config) => modernSpeech.speak(text, config),
+  
+  // Para tudo
+  stopAll: () => modernSpeech.stop(),
+  
+  // Configura globalmente
+  configure: (config) => modernSpeech.setConfig(config),
+  
+  // Lista vozes
+  listVoices: () => modernSpeech.getAvailableVoices(),
+  
+  // Status
+  status: () => modernSpeech.getStatus(),
+  
+  // Fala com voz específica
+  speakWithVoice: (text, voiceName) => modernSpeech.speak(text, { voice: voiceName }),
+  
+  // Fala mais rápido/devagar
+  speakWithRate: (text, rate) => modernSpeech.speak(text, { rate }),
+  
+  // Fala com tom específico
+  speakWithPitch: (text, pitch) => modernSpeech.speak(text, { pitch })
+};
+
+// 🌟 Exportações
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { ModernSpeech, speak, SpeechUtils };
+} else {
+  window.ModernSpeech = ModernSpeech;
+  window.speak = speak;
+  window.SpeechUtils = SpeechUtils;
+}
+
+// 🎉 Inicialização
+console.log('🎤 Modern Speech.js carregado!');
+console.log('📋 Uso: speak("Olá mundo!") ou SpeechUtils.speakWith("texto", {rate: 1.5})');
