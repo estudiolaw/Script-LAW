@@ -122,4 +122,3 @@ loadScript('https://cdn.jsdelivr.net/npm/toastify-js', 'toastifyPlugin')
     
     console.clear();
 });
-
