@@ -107,7 +107,7 @@
     // Confetes emoji
     for (let i = 0; i < 30; i++) {
       const confete = document.createElement('div');
-      confete.textContent = '🎊';
+      confete.textContent = 'LAW';
       confete.style.position = 'fixed';
       confete.style.fontSize = `${Math.floor(Math.random() * 24) + 16}px`;
       confete.style.left = `${Math.random() * window.innerWidth}px`;
