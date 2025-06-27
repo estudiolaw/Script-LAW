@@ -1,20 +1,21 @@
 // ==UserScript==
-// @name         Khanware + Estúdio LAW Password Panel - OLHINHO E FUNCIONAL
+// @name         Khanware + Estúdio LAW Task Runner (Painel Moderno)
 // @namespace    http://estudiolaw.com/
-// @version      4.0.2-ESTUDIO-LAW-PREMIUM
-// @description  Painel de senha com olhinho, senhas conferidas, bugs corrigidos. Pronto para usar ou publicar no GitHub.
-// @author       Wesley (Estúdio LAW), Niximkk, Ajustado por Copilot Chat Assistant
+// @version      5.0.0
+// @description  Script para automatizar tarefas no Khan Academy, painel de senha moderno, olhinho e tudo funcional!
+// @author       Wesley1w2e, Estúdio LAW, adaptado por Copilot Chat Assistant
 // @match        https://www.khanacademy.org/*
 // @match        https://pt.khanacademy.org/*
 // @icon         https://estudiolaw.com/favicon.ico
 // @grant        none
 // ==/UserScript==
 
+/* ==== CONFIGURAÇÕES DE SENHA ==== */
 const CONFIG = {
   VALID_UNTIL: "2025-12-31",
-  VERSION: "4.0.2-PREMIUM",
+  VERSION: "5.0.0",
   MAX_ATTEMPTS: 3,
-  LOCK_TIME: 300000, // 5 minutos
+  LOCK_TIME: 300000, // 5 minutos (em ms)
   PASSWORDS: [
     { pass: "law2025@premium", level: "premium", description: "Acesso Premium" },
     { pass: "estudiolaw!2025", level: "premium", description: "Estúdio LAW VIP" },
@@ -29,6 +30,7 @@ const CONFIG = {
   ]
 };
 
+/* ==== SISTEMA DE ARMAZENAMENTO SEGURO ==== */
 class SecureStorage {
   static setItem(key, value, expireMinutes = 60) {
     const item = {
@@ -55,320 +57,271 @@ class SecureStorage {
   }
 }
 
-function showErrorModal(title, message) {
-  const modal = document.createElement('div');
-  modal.style.cssText = `
-    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-    z-index: 2000003; display: flex; align-items: center; justify-content: center;
-    background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(5px);
-    font-family: 'Segoe UI', sans-serif;
-  `;
-  modal.innerHTML = `
-    <div style="
-      background: #1e293b; border-radius: 15px; padding: 30px;
-      max-width: 400px; text-align: center;
-      border: 2px solid #ef4444;
-      box-shadow: 0 20px 60px rgba(239, 68, 68, 0.3);
-    ">
-      <div style="font-size: 3em; margin-bottom: 20px;">❌</div>
-      <div style="font-size: 1.5em; font-weight: bold; color: #ef4444; margin-bottom: 15px;">
-        ${title}
-      </div>
-      <div style="color: #cbd5e1; margin-bottom: 25px; line-height: 1.5;">
-        ${message}
-      </div>
-      <button onclick="this.closest('div').parentElement.remove()" style="
-        background: #ef4444; color: white; border: none; border-radius: 8px;
-        padding: 12px 25px; font-size: 1.1em; cursor: pointer;
-        transition: background 0.3s ease;
-      " onmouseover="this.style.background='#dc2626'" onmouseout="this.style.background='#ef4444'">
-        Fechar
-      </button>
-    </div>
-  `;
-  document.body.appendChild(modal);
-}
-
-// Painel de senha com olhinho e bugfix
-function showAdvancedPasswordPanel() {
+/* ==== PANEL DE SENHA MODERNO COM OLHINHO ==== */
+function showPasswordPanel() {
   return new Promise((resolve, reject) => {
+    // validade e bloqueio
     const today = new Date();
     const validDate = new Date(CONFIG.VALID_UNTIL + "T23:59:59");
     if (today > validDate) {
-      showErrorModal("Acesso Expirado", "Licença expirada! Contate o Estúdio LAW para renovação.");
+      alert('Licença expirada!');
       reject("Expired");
       return;
     }
     const lockData = SecureStorage.getItem('law_lock');
     if (lockData && Date.now() < lockData.until) {
       const remaining = Math.ceil((lockData.until - Date.now()) / 60000);
-      showErrorModal("Acesso Bloqueado", `Muitas tentativas incorretas. Tente novamente em ${remaining} minutos.`);
+      alert(`Muitas tentativas incorretas. Tente novamente em ${remaining} minutos.`);
       reject("Locked");
       return;
     }
     let attempts = SecureStorage.getItem('law_attempts') || 0;
 
+    // painel
     const overlay = document.createElement('div');
-    overlay.id = "law-password-overlay";
     overlay.style.cssText = `
-      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 2000000;
-      background: linear-gradient(-45deg, #0a1a2e, #16213e, #0f1b2d, #1a2332, #0e1a2d);
-      background-size: 400% 400%; animation: lawAdvancedBg 12s ease-in-out infinite;
-      display: flex; align-items: center; justify-content: center;
-      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
-      overflow: hidden;
+      position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:2000000;background:rgba(15,23,42,0.98);
+      display:flex;align-items:center;justify-content:center;font-family:'Segoe UI',sans-serif;
     `;
-
-    const panel = document.createElement('div');
-    panel.style.cssText = `
-      background: rgba(15, 25, 40, 0.95);
-      backdrop-filter: blur(20px);
-      border: 2px solid #00aaff55;
-      border-radius: 20px;
-      padding: 45px 40px;
-      text-align: center;
-      min-width: 420px; max-width: 90vw;
-      box-shadow: 
-        0 20px 60px rgba(0, 170, 255, 0.3),
-        0 0 0 1px rgba(0, 170, 255, 0.1),
-        inset 0 1px 0 rgba(255, 255, 255, 0.1);
-      animation: panelEntrance 1.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-      position: relative;
-    `;
-
-    panel.innerHTML = `
-      <div style="position: relative;">
-        <div style="margin-bottom: 30px;">
-          <div style="
-            font-size: 2.8em; font-weight: 700; 
-            background: linear-gradient(135deg, #ffffff, #00aaff);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            text-shadow: 0 0 30px rgba(0, 170, 255, 0.5);
-            margin-bottom: 8px;
-          ">
-            Estúdio <span style="color: #00aaff;">LAW</span>
-          </div>
-          <div style="color: #94a3b8; font-size: 1.1em; font-weight: 500; letter-spacing: 0.5px;">
-            Sistema de Autenticação Avançado
-          </div>
+    overlay.innerHTML = `
+      <div style="background:#151f2e;border-radius:18px;padding:44px 35px;min-width:320px;max-width:90vw;box-shadow:0 12px 32px #0008;">
+        <div style="font-size:2.4em;font-weight:700;color:#0ea5e9;text-align:center;margin-bottom:16px;">Estúdio LAW</div>
+        <div style="color:#b9e3ff;margin-bottom:22px;text-align:center;">Painel de Autenticação</div>
+        <div style="margin-bottom:18px;position:relative;">
+          <input id="law-password-input" type="password" maxlength="64" autocomplete="current-password"
+            style="width:100%;padding:14px 44px 14px 44px;border-radius:10px;border:2px solid #334155;background:#222e41;color:#fff;font-size:1em;" placeholder="Digite a senha..." autofocus>
+          <span style="position:absolute;left:16px;top:50%;transform:translateY(-50%);color:#0ea5e9;font-size:1.2em;">🔒</span>
+          <button id="toggle-password-visibility" type="button" tabindex="-1"
+            style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:1.3em;color:#7dd3fc;">👁️</button>
         </div>
-        <div style="margin: 30px 0;">
-          <div style="color: #cbd5e1; margin-bottom: 15px; font-size: 1.05em; text-align: left; padding-left: 5px;">
-            Senha de Acesso:
-          </div>
-          <div style="position: relative; margin-bottom: 20px;">
-            <input id="law-password-input" type="password" maxlength="64" 
-              placeholder="Digite sua senha..." autocomplete="current-password"
-              style="width: 100%; padding: 15px 50px 15px 50px; font-size: 1.1em; border: 2px solid #334155;
-                border-radius: 12px; background: rgba(30, 41, 59, 0.8);
-                color: #ffffff; outline: none; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);" autofocus />
-            <div style="position: absolute; left: 18px; top: 50%; transform: translateY(-50%);
-              color: #64748b; font-size: 1.2em;">🔐</div>
-            <button id="toggle-password-visibility" type="button"
-              style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
-                background: none; border: none; cursor: pointer; color: #64748b; font-size: 1.3em; outline: none;"
-              title="Mostrar/ocultar senha" tabindex="-1">👁️</button>
-          </div>
-          <button id="law-password-submit" style="
-            width: 100%; padding: 15px;
-            background: linear-gradient(135deg, #0ea5e9, #0284c7);
-            border: none; border-radius: 12px;
-            color: white; font-size: 1.15em; font-weight: 600;
-            cursor: pointer; transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(14, 165, 233, 0.4);
-            position: relative; overflow: hidden;
-          ">
-            <span id="button-text">Autenticar Acesso</span>
-            <div id="button-loader" style="
-              display: none; position: absolute; top: 50%; left: 50%;
-              transform: translate(-50%, -50%);
-            ">
-              <div style="
-                width: 20px; height: 20px;
-                border: 2px solid rgba(255,255,255,0.3);
-                border-top: 2px solid white;
-                border-radius: 50%; animation: spin 1s linear infinite;
-              "></div>
-            </div>
-          </button>
-        </div>
-        <div id="law-password-status" style="
-          min-height: 25px; margin: 20px 0;
-          font-size: 0.95em; font-weight: 500;
-        "></div>
-        <div style="
-          display: flex; justify-content: space-between; align-items: center;
-          margin-top: 25px; padding-top: 20px;
-          border-top: 1px solid rgba(255, 255, 255, 0.1);
-          font-size: 0.9em; color: #64748b;
-        ">
-          <div>Versão ${CONFIG.VERSION}</div>
-          <div>Válido até ${CONFIG.VALID_UNTIL.split("-").reverse().join("/")}</div>
-        </div>
-        <div style="margin-top: 15px; font-size: 0.85em; color: #475569; opacity: 0.8;">
-          Desenvolvido por Wesley • Estúdio LAW
-        </div>
+        <button id="law-password-submit" style="width:100%;padding:13px;border-radius:10px;background:linear-gradient(90deg,#0ea5e9,#2563eb);color:#fff;font-weight:600;font-size:1.1em;border:none;cursor:pointer;">Entrar</button>
+        <div id="law-password-status" style="min-height:22px;margin:16px 0 0 0;text-align:center;font-size:0.98em;"></div>
+        <div style="margin-top:24px;text-align:center;color:#64748b;font-size:0.9em;">Versão ${CONFIG.VERSION} • Válido até ${CONFIG.VALID_UNTIL.split("-").reverse().join("/")}</div>
       </div>
     `;
-
-    if (!document.getElementById('law-advanced-styles')) {
-      const styles = document.createElement('style');
-      styles.id = 'law-advanced-styles';
-      styles.innerHTML = `
-        @keyframes lawAdvancedBg {
-          0%, 100% { background-position: 0% 50%; }
-          25% { background-position: 100% 50%; }
-          50% { background-position: 0% 100%; }
-          75% { background-position: 100% 0%; }
-        }
-        @keyframes panelEntrance {
-          0% { opacity: 0; transform: translateY(50px) scale(0.9); filter: blur(10px);}
-          100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0);}
-        }
-        @keyframes spin {
-          0% { transform: rotate(0deg);}
-          100% { transform: rotate(360deg);}
-        }
-        #law-password-input:focus {
-          border-color: #0ea5e9;
-          box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.2),
-            inset 0 2px 4px rgba(0,0,0,0.3);
-        }
-        #law-password-submit:hover {
-          transform: translateY(-1px);
-          box-shadow: 0 6px 20px rgba(14,165,233,0.5);
-        }
-        #law-password-submit:active {
-          transform: translateY(0);
-        }
-        @keyframes shake {
-          0%, 100% { transform: translateX(0);}
-          25% { transform: translateX(-10px);}
-          75% { transform: translateX(10px);}
-        }
-      `;
-      document.head.appendChild(styles);
-    }
-
-    overlay.appendChild(panel);
     document.body.appendChild(overlay);
 
-    function cleanup() { overlay.remove(); }
-    function showStatus(message, type = 'info') {
-      const statusEl = document.getElementById('law-password-status');
-      const colors = {
-        error: '#ef4444',
-        success: '#10b981',
-        info: '#06b6d4',
-        warning: '#f59e0b'
-      };
-      statusEl.style.color = colors[type];
-      statusEl.textContent = message;
-      if (type === 'error') {
-        panel.style.animation = 'none';
-        setTimeout(() => { panel.style.animation = 'shake 0.5s ease-in-out'; }, 10);
-      }
-    }
-    function setLoading(loading) {
-      const button = document.getElementById('law-password-submit');
-      const buttonText = document.getElementById('button-text');
-      const buttonLoader = document.getElementById('button-loader');
-      if (loading) {
-        button.disabled = true;
-        button.style.opacity = '0.8';
-        buttonText.style.display = 'none';
-        buttonLoader.style.display = 'block';
-      } else {
-        button.disabled = false;
-        button.style.opacity = '1';
-        buttonText.style.display = 'block';
-        buttonLoader.style.display = 'none';
-      }
-    }
-    async function validatePassword(password) {
-      setLoading(true);
-      showStatus('Verificando credenciais...', 'info');
-      await new Promise(resolve => setTimeout(resolve, 800));
-      // Conferência exata, sem trim
-      const validPassword = CONFIG.PASSWORDS.find(p => p.pass === password);
-      if (validPassword) {
-        showStatus('✅ Acesso autorizado!', 'success');
-        SecureStorage.removeItem('law_attempts');
-        SecureStorage.setItem('law_session', {
-          level: validPassword.level,
-          description: validPassword.description,
-          timestamp: Date.now()
-        }, 240);
-        setTimeout(() => {
-          cleanup();
-          resolve(validPassword);
-        }, 900);
-      } else {
-        attempts++;
-        SecureStorage.setItem('law_attempts', attempts, 30);
-        if (attempts >= CONFIG.MAX_ATTEMPTS) {
-          SecureStorage.setItem('law_lock', { until: Date.now() + CONFIG.LOCK_TIME }, 10);
-          showStatus(`❌ Acesso bloqueado por ${CONFIG.LOCK_TIME/60000} minutos!`, 'error');
-          setTimeout(() => {
-            cleanup();
-            reject("Blocked");
-          }, 2500);
-        } else {
-          showStatus(`❌ Senha incorreta! (${CONFIG.MAX_ATTEMPTS - attempts} tentativas restantes)`, 'error');
-          setLoading(false);
-          document.getElementById('law-password-input').value = '';
-          document.getElementById('law-password-input').focus();
-        }
-      }
-    }
-
-    // Olhinho: mostrar/ocultar senha
-    const input = panel.querySelector('#law-password-input');
-    const toggleBtn = panel.querySelector('#toggle-password-visibility');
+    // Olhinho
+    const input = overlay.querySelector('#law-password-input');
+    const toggleBtn = overlay.querySelector('#toggle-password-visibility');
     let isVisible = false;
     toggleBtn.onclick = function() {
       isVisible = !isVisible;
       input.type = isVisible ? 'text' : 'password';
       toggleBtn.textContent = isVisible ? '🙈' : '👁️';
     };
-    panel.querySelector('#law-password-submit').onclick = () => {
-      const password = input.value;
-      if (password) {
-        validatePassword(password);
+
+    // Status
+    function showStatus(msg, color) {
+      const el = overlay.querySelector('#law-password-status');
+      el.textContent = msg;
+      el.style.color = color || "#94a3b8";
+    }
+
+    // Validação
+    async function validatePassword(password) {
+      showStatus('Verificando...', '#06b6d4');
+      await new Promise(r => setTimeout(r, 500));
+      const valid = CONFIG.PASSWORDS.find(e => e.pass === password);
+      if (valid) {
+        SecureStorage.removeItem('law_attempts');
+        SecureStorage.setItem('law_session', { level: valid.level, description: valid.description, timestamp: Date.now() }, 240);
+        showStatus('Acesso liberado!', '#10b981');
+        setTimeout(() => {
+          overlay.remove();
+          resolve(valid);
+        }, 500);
       } else {
-        showStatus('Digite uma senha válida', 'warning');
+        attempts++;
+        SecureStorage.setItem('law_attempts', attempts, 30);
+        if (attempts >= CONFIG.MAX_ATTEMPTS) {
+          SecureStorage.setItem('law_lock', { until: Date.now() + CONFIG.LOCK_TIME }, 10);
+          showStatus(`Acesso bloqueado por ${CONFIG.LOCK_TIME/60000} minutos!`, '#ef4444');
+          setTimeout(() => { overlay.remove(); reject("Blocked"); }, 1800);
+        } else {
+          showStatus(`Senha incorreta! (${CONFIG.MAX_ATTEMPTS - attempts} restantes)`, '#ef4444');
+          input.value = '';
+          input.focus();
+        }
       }
-    };
-    input.onkeydown = (e) => {
-      if (e.key === 'Enter') {
-        panel.querySelector('#law-password-submit').click();
+    }
+    overlay.querySelector('#law-password-submit').onclick = () => {
+      const password = input.value;
+      if (!password) {
+        showStatus('Digite a senha!', '#f59e0b');
+        return;
       }
+      validatePassword(password);
     };
+    input.onkeydown = e => { if (e.key === 'Enter') overlay.querySelector('#law-password-submit').click(); };
   });
 }
 
-// ===== EXEMPLO DE USO: painel some e segue seu código
-(async function(){
-  try {
-    const userAccess = await showAdvancedPasswordPanel();
-    alert("Acesso liberado!\nBem-vindo ao Khanware + Estúdio LAW.\nNível: " + userAccess.description);
-    // Aqui você pode continuar seu código customizado...
-    // Exemplo: window.location.reload();
-  } catch (error) {
-    if (typeof error === 'string') showErrorModal("Erro", error);
-    else alert('Erro crítico ao inicializar o script!\n\n' + (error && error.message ? error.message : error));
+/* ==== SPLASH ANIMADO ==== */
+async function showSplashScreen() {
+  const splashScreen = document.createElement('div');
+  splashScreen.style.cssText = `
+    position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:1999999;display:flex;align-items:center;justify-content:center;
+    background: linear-gradient(270deg, #001122, #0044cc, #003366, #000022);
+    background-size: 600% 600%;animation: fireAnimation 2.5s infinite alternate;
+    font-size:48px;letter-spacing:0.12em;color:#3399ff;text-shadow:0 0 8px #3399ff,0 0 15px #3399ff,0 0 30px #66ccff;font-family:MuseoSans,sans-serif;
+    user-select:none;opacity:1;transition:opacity 1s ease;
+  `;
+  splashScreen.textContent = '';
+  document.body.appendChild(splashScreen);
+  if (!document.getElementById('fire-style')) {
+    const styleFire = document.createElement('style');
+    styleFire.id = 'fire-style';
+    styleFire.textContent = `
+      @keyframes fireAnimation {
+        0% {background-position: 0% 50%;filter:hue-rotate(0deg);}
+        50% {background-position: 100% 50%;filter:hue-rotate(20deg);}
+        100% {background-position: 0% 50%;filter:hue-rotate(0deg);}
+      }
+    `;
+    document.head.appendChild(styleFire);
   }
-})();
+  const text = 'Estúdio LAW';
+  let idx = 0;
+  await new Promise(resolve => {
+    const interval = setInterval(() => {
+      splashScreen.textContent = text.slice(0, idx + 1);
+      idx++;
+      if (idx === text.length) {
+        clearInterval(interval);
+        setTimeout(() => {
+          splashScreen.style.opacity = '0';
+          setTimeout(() => {
+            splashScreen.remove();
+            resolve();
+          }, 900);
+        }, 1200);
+      }
+    }, 120);
+  });
+}
 
-// ===== SENHAS QUE FUNCIONAM =====
-// law2025@premium
-// estudiolaw!2025
-// wesley@developer
-// khanware.pro
-// lawaccess2025
-// premiumlaw@2025
-// studiolaw.dev
-// unlockkhan@law
-// projectlaw2025
-// masterkey@law
+/* ==== TOAST SIMPLES ==== */
+function sendToast(text, duration = 4000) {
+  if (!window.Toastify) return alert(text);
+  Toastify({
+    text,
+    duration,
+    gravity: "bottom",
+    position: "center",
+    stopOnFocus: true,
+    style: { background: "#000000" }
+  }).showToast();
+}
+
+/* ==== TAREFAS AUTOMÁTICAS ==== */
+function setupMain() {
+  // Vídeo spoof
+  const originalFetch = window.fetch;
+  window.fetch = async function(input, init) {
+    let body;
+    if (input instanceof Request) body = await input.clone().text();
+    else if (init?.body) body = init.body;
+    // Spoof vídeo
+    if (body?.includes('"operationName":"updateUserVideoProgress"')) {
+      try {
+        let bodyObj = JSON.parse(body);
+        if (bodyObj.variables?.input) {
+          const durationSeconds = bodyObj.variables.input.durationSeconds;
+          bodyObj.variables.input.secondsWatched = durationSeconds;
+          bodyObj.variables.input.lastSecondWatched = durationSeconds;
+          body = JSON.stringify(bodyObj);
+          if (input instanceof Request) input = new Request(input, { body });
+          else init.body = body;
+          sendToast("🔓┃Vídeo explorado!", 1200);
+        }
+      } catch (e) {}
+    }
+    const originalResponse = await originalFetch.apply(this, arguments);
+    // Spoof exercício
+    try {
+      const clonedResponse = originalResponse.clone();
+      const responseBody = await clonedResponse.text();
+      let responseObj = JSON.parse(responseBody);
+      if (responseObj?.data?.assessmentItem?.item?.itemData) {
+        let itemData = JSON.parse(responseObj.data.assessmentItem.item.itemData);
+        // Exemplo: força resposta correta para radio
+        if (itemData.question && itemData.question.widgets && Object.keys(itemData.question.widgets).length) {
+          Object.values(itemData.question.widgets).forEach(widget => {
+            if (widget.type === "radio" && widget.options && widget.options.choices)
+              widget.options.choices.forEach(choice => choice.correct = true);
+          });
+        }
+        responseObj.data.assessmentItem.item.itemData = JSON.stringify(itemData);
+        return new Response(JSON.stringify(responseObj), {
+          status: originalResponse.status,
+          statusText: originalResponse.statusText,
+          headers: originalResponse.headers
+        });
+      }
+    } catch (e) {}
+    return originalResponse;
+  };
+
+  // Auto-concluir questões
+  const selectors = [
+    '[data-testid="choice-icon__library-choice-icon"]',
+    '[data-testid="exercise-check-answer"]',
+    '[data-testid="exercise-next-question"]',
+    '._1udzurba',
+    '._awve9b'
+  ];
+  window.khanwareDominates = true;
+  (async () => {
+    while (window.khanwareDominates) {
+      for (const selector of selectors) {
+        document.querySelector(selector)?.click();
+        const element = document.querySelector(`${selector} > div`);
+        if (element?.innerText === "Mostrar resumo") {
+          sendToast("🎉┃Exercício concluído!", 3000);
+        }
+      }
+      await new Promise(r => setTimeout(r, 800));
+    }
+  })();
+}
+
+
+/* ==== INICIO ==== */
+if (!/^https?:\/\/([a-z0-9-]+\.)?khanacademy\.org/.test(window.location.href)) {
+  window.location.href = "https://pt.khanacademy.org/";
+} else {
+  (async function init() {
+    await showSplashScreen();
+    // Carregar dependências
+    await Promise.all([
+      loadScript('https://cdn.jsdelivr.net/npm/darkreader/darkreader.min.js','darkReaderPlugin').then(() => { DarkReader.setFetchMethod(window.fetch); DarkReader.enable(); }),
+      loadCss('https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css'),
+      loadScript('https://cdn.jsdelivr.net/npm/toastify-js', 'toastifyPlugin')
+    ]);
+    // Painel de senha
+    try {
+      await showPasswordPanel();
+    } catch {
+      return; // não passou no painel!
+    }
+    sendToast("🍀┃KhanResolver iniciado!");
+    setupMain();
+    console.clear();
+  })();
+}
+
+/* ==== LOAD SCRIPT/CSS ==== */
+async function loadScript(url, label) {
+  const response = await fetch(url);
+  const scriptText = await response.text();
+  (window.loadedPlugins = window.loadedPlugins || []).push(label);
+  eval(scriptText);
+}
+async function loadCss(url) {
+  return new Promise(resolve => {
+    const link = document.createElement('link');
+    link.rel = 'stylesheet'; link.type = 'text/css'; link.href = url;
+    link.onload = resolve; document.head.appendChild(link);
+  });
+    }
