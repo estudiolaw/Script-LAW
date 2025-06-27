@@ -2,7 +2,7 @@
 // @name         Estúdio LAW | AutoScript V3.1.1
 // @namespace    https://estudiolaw.dev/
 // @version      3.1.1
-// @description  Script desenvolvido por Wesley para automações no site da Khan Academy.
+// @description  Script desenvolvido por Wesley para automações na Khan Academy.
 // @author       Wesley
 // @match        https://*.khanacademy.org/*
 // @icon         https://r2.e-z.host/4d0a0bea-60f8-44d6-9e74-3032a64a9f32/ukh0rq22.png
@@ -12,12 +12,8 @@
 const ver = "V3.1.1";
 let isDev = false;
 
+// TROQUE AQUI SE QUISER USAR SEU REPOSITÓRIO:
 const repoPath = `https://raw.githubusercontent.com/Niximkk/Khanware/refs/heads/${isDev ? "dev/" : "main/"}`;
-
-let device = {
-  mobile: /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Windows Phone|Mobile|Tablet|Kindle|Silk|PlayBook|BB10/i.test(navigator.userAgent),
-  apple: /iPhone|iPad|iPod|Macintosh|Mac OS X/i.test(navigator.userAgent)
-};
 
 let user = {
   username: "Username",
@@ -27,6 +23,46 @@ let user = {
 
 let loadedPlugins = [];
 
+/* Segurança */
+document.addEventListener('contextmenu', (e) => !window.disableSecurity && e.preventDefault());
+document.addEventListener('keydown', (e) => {
+  if (!window.disableSecurity && (e.key === 'F12' || (e.ctrlKey && e.shiftKey && ['I', 'C', 'J'].includes(e.key)))) {
+    e.preventDefault();
+  }
+});
+
+console.log(Object.defineProperties(new Error, {
+  toString: {
+    value() {
+      (new Error).stack.includes('toString@') && location.reload();
+    }
+  },
+  message: {
+    get() {
+      location.reload();
+    }
+  },
+}));
+
+/* Ferramentas */
+window.debug = function (text) {};
+const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+const playAudio = url => {
+  const audio = new Audio(url);
+  audio.play();
+};
+const sendToast = (text, duration = 5000, gravity = 'bottom') => {
+  Toastify({
+    text: text,
+    duration: duration,
+    gravity: gravity,
+    position: "center",
+    stopOnFocus: true,
+    style: { background: "#000000" }
+  }).showToast();
+};
+
+/* Splash Estúdio LAW */
 const splashScreen = document.createElement('splashScreen');
 
 async function showEstudioLawSplash() {
@@ -95,70 +131,7 @@ async function hideEstudioLawSplash() {
   setTimeout(() => splashScreen.remove(), 1000);
 }
 
-/* Segurança */
-document.addEventListener('contextmenu', (e) => !window.disableSecurity && e.preventDefault());
-document.addEventListener('keydown', (e) => {
-  if (!window.disableSecurity && (e.key === 'F12' || (e.ctrlKey && e.shiftKey && ['I', 'C', 'J'].includes(e.key)))) {
-    e.preventDefault();
-  }
-});
-console.log(Object.defineProperties(new Error, {
-  toString: {
-    value() {
-      (new Error).stack.includes('toString@') && location.reload();
-    }
-  },
-  message: {
-    get() {
-      location.reload();
-    }
-  },
-}));
-
-/* Funções utilitárias */
-window.debug = function (text) { };
-const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
-const playAudio = url => {
-  const audio = new Audio(url);
-  audio.play();
-};
-const sendToast = (text, duration = 5000, gravity = 'bottom') => {
-  Toastify({
-    text: text,
-    duration: duration,
-    gravity: gravity,
-    position: "center",
-    stopOnFocus: true,
-    style: { background: "#000000" }
-  }).showToast();
-};
-
-/* Início do script principal */
-if (!/^https?:\/\/([a-z0-9-]+\.)?khanacademy\.org/.test(window.location.href)) {
-  alert("❌ Script Estúdio LAW falhou!\n\nExecute no site do Khan Academy: https://pt.khanacademy.org/");
-  window.location.href = "https://pt.khanacademy.org/";
-}
-
-(async () => {
-  await showEstudioLawSplash();
-
-  // Carregar ferramentas visuais e funções
-  await loadScript('https://cdn.jsdelivr.net/npm/toastify-js', 'toastifyPlugin');
-  await loadCss('https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css', 'toastifyCss');
-  await delay(1500);
-
-  // Toasts personalizados
-  sendToast("🌐 Script Estúdio LAW carregado com sucesso!");
-  await delay(500);
-  sendToast("🚀 Desenvolvido por Estúdio LAW | Wesley", 6000, "top");
-
-  playAudio('https://r2.e-z.host/4d0a0bea-60f8-44d6-9e74-3032a64a9f32/gcelzszy.wav');
-
-  await delay(1500);
-  await hideEstudioLawSplash();
-})();
-
-/* Auxiliares de carregamento */
+/* Loader de recursos */
 async function loadScript(url, label) {
   return fetch(url).then(response => response.text()).then(script => {
     loadedPlugins.push(label);
@@ -175,3 +148,41 @@ async function loadCss(url) {
     document.head.appendChild(link);
   });
 }
+
+/* Execução principal */
+if (!/^https?:\/\/([a-z0-9-]+\.)?khanacademy\.org/.test(window.location.href)) {
+  alert("❌ Script Estúdio LAW só funciona na Khan Academy!\nAcesse: https://pt.khanacademy.org/");
+  window.location.href = "https://pt.khanacademy.org/";
+}
+
+(async () => {
+  await showEstudioLawSplash();
+
+  await loadCss('https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css');
+  await loadScript('https://cdn.jsdelivr.net/npm/toastify-js', 'toastify');
+
+  // Visuals (menu, painel, etc)
+  await loadScript(repoPath + 'visuals/mainMenu.js',     'mainMenu');
+  await loadScript(repoPath + 'visuals/statusPanel.js',  'statusPanel');
+  await loadScript(repoPath + 'visuals/widgetBot.js',    'widgetBot');
+  if (isDev) await loadScript(repoPath + 'visuals/devTab.js', 'devTab');
+
+  // Funções de tarefa
+  await loadScript(repoPath + 'functions/questionSpoof.js',   'questionSpoof');
+  await loadScript(repoPath + 'functions/videoSpoof.js',      'videoSpoof');
+  await loadScript(repoPath + 'functions/minuteFarm.js',      'minuteFarm');
+  await loadScript(repoPath + 'functions/answerRevealer.js',  'answerRevealer');
+  await loadScript(repoPath + 'functions/spoofUser.js',       'spoofUser');
+  await loadScript(repoPath + 'functions/rgbLogo.js',         'rgbLogo');
+  await loadScript(repoPath + 'functions/customBanner.js',    'customBanner');
+  await loadScript(repoPath + 'functions/autoAnswer.js',      'autoAnswer');
+
+  sendToast("✨ Estúdio LAW ativado!");
+  await delay(500);
+  sendToast("🚀 Desenvolvido por Estúdio LAW | Wesley", 6000, "top");
+
+  playAudio('https://r2.e-z.host/4d0a0bea-60f8-44d6-9e74-3032a64a9f32/gcelzszy.wav');
+
+  await delay(1000);
+  await hideEstudioLawSplash();
+})();
