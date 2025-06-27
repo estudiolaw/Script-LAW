@@ -111,4 +111,14 @@ loadScript('https://cdn.jsdelivr.net/npm/toastify-js', 'toastifyPlugin')
     
     await delay(500);
     
-    sendToast(`⭐ Bem vindo(a) de volta: ${user.nickname}`);
+sendToast(`⭐ Bem vindo(a) de volta: ${user.nickname}`);
+    if(device.apple) { await delay(500); sendToast(`🪽 Que tal comprar um Samsung?`); }
+    
+    loadedPlugins.forEach(plugin => sendToast(`🪝 ${plugin} Loaded!`, 2000, 'top') );
+    
+    hideSplashScreen();
+    setupMenu();
+    setupMain();
+    
+    console.clear();
+});
