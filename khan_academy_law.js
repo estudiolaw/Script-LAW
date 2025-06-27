@@ -1,8 +1,8 @@
 const ver = "V3.1.1";
 let isDev = false;
 
-// Usando o repositório do Estúdio LAW para as funções principais
-const repoPath = `https://raw.githubusercontent.com/Niximkk/EstudioLAW/refs/heads/${isDev ? "dev/" : "main/"}`;
+// Usando o repositório do Khanware para as funções principais
+const repoPath = `https://raw.githubusercontent.com/Niximkk/Khanware/refs/heads/${isDev ? "dev/" : "main/"}`;
 
 let device = {
     mobile: /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Windows Phone|Mobile|Tablet|Kindle|Silk|PlayBook|BB10/i.test(navigator.userAgent),
@@ -158,7 +158,7 @@ async function showEstudioLawSplash() {
         ">
             Estúdio <span style="color:#00aaff;">LAW</span>
             <div style="font-size: 0.3em; margin-top: 20px; color: #66ccff;">
-                Sistema Avançado de Aprendizagem v3.1.1
+                Sistema Avançado de Aprendizagem
             </div>
         </div>
     `;
@@ -213,7 +213,7 @@ async function showPasswordScreen() {
                 🔐 ACESSO RESTRITO
             </div>
             <div style="color: #66ccff; margin-bottom: 20px; font-size: 1.1em;">
-                Sistema Estúdio LAW v3.1.1
+                Sistema Estúdio LAW
             </div>
             <div style="color: #999; margin-bottom: 30px; font-size: 0.9em;">
                 ${currentTime}
@@ -348,7 +348,7 @@ async function showSuccessScreen() {
                 ACESSO AUTORIZADO
             </div>
             <div style="color: #66ff66; font-size: 1.3em; margin-bottom: 30px;">
-                Bem-vindo ao Estúdio LAW v3.1.1
+                Bem-vindo ao Estúdio LAW
             </div>
             <div style="color: #ccffcc; font-size: 1em;">
                 Carregando sistema...
@@ -415,7 +415,7 @@ async function loadCss(url) {
 
 /* Visual Functions */
 function setupMenu() {
-    // Carregar menus do Estúdio LAW (funcionais)
+    // Carregar menus do Khanware (funcionais)
     console.log("🎯 Configurando menus funcionais...");
     loadScript(repoPath+'visuals/mainMenu.js', 'mainMenu');
     loadScript(repoPath+'visuals/statusPanel.js', 'statusPanel');
@@ -425,7 +425,7 @@ function setupMenu() {
 
 /* Main Functions */ 
 function setupMain(){
-    // Carregar funções REAIS do Estúdio LAW
+    // Carregar funções REAIS do Khanware
     console.log("⚡ Carregando módulos funcionais...");
     loadScript(repoPath+'functions/questionSpoof.js', 'questionSpoof');
     loadScript(repoPath+'functions/videoSpoof.js', 'videoSpoof');
