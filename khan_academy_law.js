@@ -13,7 +13,7 @@
   // ==== CONFIGURAÇÃO ====
   const VALID_UNTIL = "2025-12-31";
   const PASSWORDS = [
-    "law2025@1","khanlaw!2","stud1oLAW","wesleyx2025","projetoblue",
+    "kng120120","khanlaw!2","stud1oLAW","wesleyx2025","projetoblue",
     "lawaccess23","segredoLAW","unlockkhan","estudiopass","lawpremium"
   ];
   const delay = ms => new Promise(res => setTimeout(res, ms));
