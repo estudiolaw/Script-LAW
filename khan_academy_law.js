@@ -12,7 +12,7 @@
 (async function() {
   // ==== 1) CONFIGURAÇÃO DE SENHAS COM VALIDADE E HORA ====
   const PASSWORDS = [
-    { pass: "Law!Access#2025",     expires: "2025-07-31T23:59:59" },
+    { pass: "270425",     expires: "2026-01-31T23:59:59" },
     { pass: "K@hnL4w*Sept",        expires: "2025-09-30T23:59:59" },
     { pass: "StuD10-L@wOct",       expires: "2025-10-31T23:59:59" },
     { pass: "WesleyX_11#25",       expires: "2025-11-30T23:59:59" },
