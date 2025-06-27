@@ -1,15 +1,16 @@
 // ==UserScript==
-// @name         Khan Academy LAW + Painel e Abertura
+// @name         Khan Academy LAW + Painel, Abertura e Comemoração
 // @namespace    http://estudiolaw.com/
-// @version      1.1.0
-// @description  Painel de senha + abertura animada + modo dark e automação Khan Academy (by Wesley1w2e)
+// @version      1.2.0
+// @description  Painel de senha + comemoração dinâmica + abertura animada + modo dark e automação Khan Academy (by Wesley1w2e)
 // @author       Wesley
-// @match        *://*/*
+// @match        *://*.khanacademy.org/*
+// @match        *://khanacademy.org/*
 // @grant        none
 // ==/UserScript==
 
 (async function() {
-  // ==== CONFIGURAÇÃO =====
+  // ==== CONFIGURAÇÃO ====
   const VALID_UNTIL = "2025-12-31";
   const PASSWORDS = [
     "law2025@1","khanlaw!2","stud1oLAW","wesleyx2025","projetoblue",
@@ -17,7 +18,7 @@
   ];
   const delay = ms => new Promise(res => setTimeout(res, ms));
 
-  // ==== 1) PAINEL DE SENHA =====
+  // ==== 1) PAINEL DE SENHA ====
   function showAnimatedPasswordPanel() {
     return new Promise((resolve, reject) => {
       const today = new Date();
@@ -26,7 +27,7 @@
         return reject("Expirado");
       }
 
-      // overlay e painel
+      // overlay & panel
       const overlay = document.createElement('div');
       overlay.id = "estudiolaw-password-overlay";
       overlay.style = `
@@ -35,7 +36,6 @@
         background-size:400% 400%;animation:lawBgFlow 7s ease-in-out infinite alternate;
         display:flex;align-items:center;justify-content:center;
       `;
-
       const panel = document.createElement('div');
       panel.style = `
         background:rgba(18,43,70,0.93);box-shadow:0 8px 32px #000a,0 0 0 2px #00aaff44;
@@ -73,7 +73,6 @@
       }
       document.body.appendChild(overlay);
 
-      // eventos
       document.getElementById("estudiolaw-passok").onclick = () => {
         const val = document.getElementById("estudiolaw-passinput").value;
         if (PASSWORDS.includes(val)) {
@@ -89,7 +88,103 @@
     });
   }
 
-  // ==== 2) ABERTURA ANIMADA =====
+  // ==== 2) FUNÇÃO DE CELEBRAÇÃO ====
+  async function showCelebration() {
+    return new Promise(resolve => {
+      const canvas = document.createElement('canvas');
+      Object.assign(canvas.style, {
+        position: 'fixed', top: 0, left: 0,
+        width: '100vw', height: '100vh',
+        background: '#0a1a2f', zIndex: 10000
+      });
+      document.body.appendChild(canvas);
+      canvas.width = innerWidth;
+      canvas.height = innerHeight;
+      const ctx = canvas.getContext('2d');
+
+      class Firework {
+        constructor() {
+          this.x = Math.random() * canvas.width;
+          this.y = canvas.height + 50;
+          this.vx = (Math.random() - .5) * 2;
+          this.vy = - (5 + Math.random() * 3);
+          this.exploded = false;
+          this.particles = [];
+        }
+        update() {
+          if (!this.exploded) {
+            this.x += this.vx;
+            this.y += this.vy;
+            this.vy += 0.1;
+            if (this.vy >= 0) this.explode();
+          } else {
+            this.particles.forEach(p => p.update());
+            this.particles = this.particles.filter(p => p.alpha > 0);
+          }
+        }
+        explode() {
+          this.exploded = true;
+          const count = 30 + Math.random() * 30;
+          for (let i = 0; i < count; i++) this.particles.push(new Particle(this.x, this.y));
+        }
+        draw() {
+          if (!this.exploded) {
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(this.x, this.y, 2, 4);
+          } else {
+            this.particles.forEach(p => p.draw());
+          }
+        }
+      }
+
+      class Particle {
+        constructor(x, y) {
+          this.x = x; this.y = y;
+          const angle = Math.random() * Math.PI * 2;
+          const speed = 1 + Math.random() * 3;
+          this.vx = Math.cos(angle) * speed;
+          this.vy = Math.sin(angle) * speed;
+          this.alpha = 1;
+          this.color = `hsl(${Math.random()*360},100%,70%)`;
+        }
+        update() {
+          this.x += this.vx;
+          this.y += this.vy + 0.2;
+          this.alpha -= 0.02;
+        }
+        draw() {
+          ctx.globalAlpha = this.alpha;
+          ctx.fillStyle = this.color;
+          ctx.fillRect(this.x, this.y, 3, 3);
+          ctx.globalAlpha = 1;
+        }
+      }
+
+      const fireworks = [];
+      let ticks = 0;
+      function animate() {
+        ticks++;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        if (ticks % 30 === 0) fireworks.push(new Firework());
+        fireworks.forEach(fw => { fw.update(); fw.draw(); });
+        if (ticks < 200) {
+          requestAnimationFrame(animate);
+        } else {
+          ctx.fillStyle = '#fff';
+          ctx.font = '3em Segoe UI';
+          ctx.textAlign = 'center';
+          ctx.fillText('Bem-vindo ao Script LAW!', canvas.width/2, canvas.height/2);
+          setTimeout(() => {
+            canvas.remove();
+            resolve();
+          }, 2500);
+        }
+      }
+      animate();
+    });
+  }
+
+  // ==== 3) ABERTURA ANIMADA LAW ====
   const splash = document.createElement('div');
   async function showLawSplash() {
     splash.style = `
@@ -128,102 +223,108 @@
     splash.remove();
   }
 
-  // ==== 3) LOAD TOASTIFY (antes de enviar toast) =====
+  // ==== 4) LOAD TOASTIFY ANTES DE USAR ====
   async function loadCss(url){return new Promise(r=>{const l=document.createElement('link');l.rel='stylesheet';l.href=url;l.onload=r;document.head.appendChild(l);});}
-  async function loadScript(url){const r=await fetch(url);eval(await r.text());}
+  async function loadScript(url){const r = await fetch(url);eval(await r.text());}
 
-  // 1) Painel de senha
+  // === Fluxo principal ===
   await showAnimatedPasswordPanel();
-
-  // 2) Carrega Toastify
   await Promise.all([
     loadCss('https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css'),
     loadScript('https://cdn.jsdelivr.net/npm/toastify-js')
   ]);
-  function sendToast(txt,d=3000){
-    Toastify({text:txt,duration:d,gravity:"bottom",position:"center",stopOnFocus:true,style:{background:"#000"}}).showToast();
-  }
-
-  // 3) Toast de boas-vindas
-  sendToast("🎉 Bem-vindo ao Estúdio LAW!",3500);
-  await delay(3500);
-
-  // 4) Abertura animada
+  function sendToast(txt,d=3000){Toastify({text:txt,duration:d,gravity:"bottom",position:"center",stopOnFocus:true,style:{background:"#000"}}).showToast();}
+  sendToast("🔐 Acesso concedido!",2000);
+  await delay(2000);
+  await showCelebration();
   await showLawSplash();
   await delay(3000);
   await hideLawSplash();
 
-  // ==== 4) PROTEÇÃO + DARKREADER + AUTOMAÇÃO KHAN ACADEMY ====
-  // Proteção original do Wesley1w2e
+  // ==== 5) PROTEÇÃO + DARKREADER + AUTOMAÇÃO KHAN ACADEMY ====
+  // ProtectionScript.js
   const prot = document.createElement('script');
   prot.src = 'https://cdn.jsdelivr.net/gh/DarkModde/Dark-Scripts/ProtectionScript.js';
   document.head.appendChild(prot);
-
-  // Carrega DarkReader
+  // DarkReader
   await loadScript('https://cdn.jsdelivr.net/npm/darkreader/darkreader.min.js').then(()=>{
     DarkReader.setFetchMethod(window.fetch);
     DarkReader.enable();
   });
 
-  // Inicia automação
-  const originalFetch = window.fetch;
-  window.fetch = async (input, init) => {
-    let body = input instanceof Request ? await input.clone().text() : init?.body;
-    if (body?.includes('"operationName":"updateUserVideoProgress"')) {
-      try {
-        const o = JSON.parse(body);
-        const d = o.variables.input.durationSeconds;
-        o.variables.input.secondsWatched = d;
-        o.variables.input.lastSecondWatched = d;
-        body = JSON.stringify(o);
-        if (input instanceof Request) input = new Request(input,{body});
-        else init.body = body;
-        sendToast("🔓┃Vídeo explorado.",1000);
-      } catch{}
-    }
-    const resp = await originalFetch(input, init);
-    try {
-      const c = await resp.clone().text();
-      const j = JSON.parse(c);
-      if (j?.data?.assessmentItem?.item?.itemData) {
-        const id = JSON.parse(j.data.assessmentItem.item.itemData);
-        if (id.question.content[0] === id.question.content[0].toUpperCase()) {
-          id.answerArea = {calculator:false,chi2Table:false,periodicTable:false,tTable:false,zTable:false};
-          id.question.content = " [[☃ radio 1]]";
-          id.question.widgets = {"radio 1":{type:"radio",options:{choices:[
-            {content:"Wesley o Brabo",correct:true},
-            {content:"Opção errada 1",correct:false}
-          ]}}};
-          j.data.assessmentItem.item.itemData = JSON.stringify(id);
-          return new Response(JSON.stringify(j),{
-            status:resp.status,statusText:resp.statusText,headers:resp.headers
-          });
-        }
+  // override fetch apenas para GraphQL POST
+  const _origFetch = window.fetch.bind(window);
+  window.fetch = async function(input, init = {}) {
+    const url = input instanceof Request ? input.url : input;
+    if (url.includes('/graphql') && init.method === 'POST') {
+      // vídeo progress
+      let bodyText = init.body;
+      if (input instanceof Request && !bodyText) bodyText = await input.clone().text();
+      if (bodyText?.includes('"operationName":"updateUserVideoProgress"')) {
+        try {
+          const o = JSON.parse(bodyText);
+          const d = o.variables.input.durationSeconds;
+          o.variables.input.secondsWatched = d;
+          o.variables.input.lastSecondWatched = d;
+          const newBody = JSON.stringify(o);
+          if (input instanceof Request) input = new Request(input, { body: newBody });
+          else init.body = newBody;
+          sendToast("🔓┃Vídeo explorado.",1000);
+        } catch {}
       }
-    } catch{}
-    return resp;
+      // faz a chamada original
+      const resp = await _origFetch(input, init);
+      // exercícios
+      try {
+        const txt = await resp.clone().text();
+        const j = JSON.parse(txt);
+        const data = j?.data?.assessmentItem?.item?.itemData;
+        if (data) {
+          let id = JSON.parse(data);
+          if (id.question.content[0] === id.question.content[0].toUpperCase()) {
+            id.answerArea = {calculator:false,chi2Table:false,periodicTable:false,tTable:false,zTable:false};
+            id.question.content = " [[☃ radio 1]]";
+            id.question.widgets = {"radio 1":{type:"radio",options:{choices:[
+              {content:"Wesley o Brabo",correct:true},
+              {content:"Opção errada 1",correct:false}
+            ]}}};
+            j.data.assessmentItem.item.itemData = JSON.stringify(id);
+            return new Response(JSON.stringify(j), {
+              status: resp.status,
+              statusText: resp.statusText,
+              headers: resp.headers
+            });
+          }
+        }
+      } catch {}
+      return resp;
+    }
+    // outras chamadas sem interferir
+    return _origFetch(input, init);
   };
 
-  // Loop de cliques
+  // loop de cliques automático
   (async()=>{
-    const sels=[`[data-testid="choice-icon__library-choice-icon"]`,
-                `[data-testid="exercise-check-answer"]`,
-                `[data-testid="exercise-next-question"]`,`._1udzurba`,`._awve9b`];
-    window.khanwareDominates=true;
-    while(window.khanwareDominates){
-      for(const s of sels){
-        document.querySelector(s)?.click();
-        const el = document.querySelector(`${s}>div`);
-        if(el?.innerText==="Mostrar resumo"){
-          sendToast("🎉┃Exercício concluído!",3000);
-        }
+    const sels = [
+      `[data-testid="choice-icon__library-choice-icon"]`,
+      `[data-testid="exercise-check-answer"]`,
+      `[data-testid="exercise-next-question"]`,
+      `._1udzurba`,
+      `._awve9b`
+    ];
+    window.khanwareDominates = true;
+    while (window.khanwareDominates) {
+      for (const sel of sels) {
+        document.querySelector(sel)?.click();
+        const e = document.querySelector(`${sel}>div`);
+        if (e?.innerText === "Mostrar resumo") sendToast("🎉┃Exercício concluído!",3000);
       }
       await delay(800);
     }
   })();
 
-  // Redireciona se não estiver na Khan
-  if(!/^https?:\/\/([a-z0-9-]+\.)?khanacademy\.org/.test(location.href)){
+  // garante redirecionamento
+  if (!/^https?:\/\/([a-z0-9-]+\.)?khanacademy\.org/.test(location.href)) {
     location.href = "https://pt.khanacademy.org/";
   }
 })();
