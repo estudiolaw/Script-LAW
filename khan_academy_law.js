@@ -51,18 +51,6 @@ document.addEventListener('keydown', (e) => {
     e.preventDefault();
   }
 });
-console.log(Object.defineProperties(new Error, {
-  toString: {
-    value() {
-      (new Error).stack.includes('toString@') && location.reload();
-    }
-  },
-  message: {
-    get() {
-      location.reload();
-    }
-  },
-}));
 
 /* Misc Styles */
 document.head.appendChild(Object.assign(document.createElement("style"),{
@@ -71,7 +59,6 @@ document.head.appendChild(Object.assign(document.createElement("style"),{
 document.head.appendChild(Object.assign(document.createElement('style'),{
   innerHTML:"::-webkit-scrollbar { width: 8px; } ::-webkit-scrollbar-track { background: #f1f1f1; } ::-webkit-scrollbar-thumb { background: #888; border-radius: 10px; } ::-webkit-scrollbar-thumb:hover { background: #555; }"
 }));
-document.querySelector("link[rel~='icon']").href = 'https://r2.e-z.host/4d0a0bea-60f8-44d6-9e74-3032a64a9f32/ukh0rq22.png';
 
 /* Emmiter */
 class EventEmitter {
@@ -93,7 +80,7 @@ new MutationObserver((mutationsList) => {
 /* Misc Functions */
 window.debug = function(text) {}
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
-const playAudio = url => { const audio = new Audio(url); audio.play(); debug(`🔊 Playing audio from ${url}`); };
+const playAudio = url => { const audio = new Audio(url); audio.play(); };
 const findAndClickBySelector = selector => {
   const element = document.querySelector(selector);
   if (element) { element.click(); sendToast(`⭕ Pressionando ${selector}...`, 1000); }
@@ -101,20 +88,21 @@ const findAndClickBySelector = selector => {
 
 function sendToast(text, duration=5000, gravity='bottom') {
   Toastify({ text, duration, gravity, position: "center", stopOnFocus: true, style: { background: "#000000" } }).showToast();
-  debug(text);
 };
 
-/* LAW Panel */
-function removeDiscordIcon() {
-  const remove = () => {
-    const discordIframe = document.querySelector("iframe[src*='discord.com']");
-    if (discordIframe) {
-      discordIframe.parentElement?.remove();
-    }
-  };
-  remove();
-  new MutationObserver(remove).observe(document.body, { childList: true, subtree: true });
+function showSplashScreen() {
+  splashScreen.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;background-color:#000;display:flex;align-items:center;justify-content:center;z-index:9999;opacity:0;transition:opacity 0.5s ease;user-select:none;color:white;font-family:MuseoSans,sans-serif;font-size:30px;text-align:center;";
+  splashScreen.innerHTML = '<span style="color:white;">Estúdio</span><span style="color:#72ff72;"> LAW</span>';
+  document.body.appendChild(splashScreen);
+  setTimeout(() => splashScreen.style.opacity = '1', 10);
 }
+
+function hideSplashScreen() {
+  splashScreen.style.opacity = '0';
+  setTimeout(() => splashScreen.remove(), 1000);
+}
+
+/* LAW Panel */
 function createLawPanel() {
   const panel = document.createElement("div");
   panel.id = "law-panel";
@@ -129,11 +117,27 @@ function createLawPanel() {
   document.body.appendChild(panel);
 }
 
-/* Load Visuals + Funcs */
+function loadScript(url, label) {
+  return fetch(url).then(response => response.text()).then(script => {
+    loadedPlugins.push(label);
+    eval(script);
+  });
+}
+
+function loadCss(url) {
+  return new Promise((resolve) => {
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.type = 'text/css';
+    link.href = url;
+    link.onload = () => resolve();
+    document.head.appendChild(link);
+  });
+}
+
 function setupMenu() {
   loadScript(repoPath+'visuals/mainMenu.js', 'mainMenu');
   loadScript(repoPath+'visuals/statusPanel.js', 'statusPanel');
-  loadScript(repoPath+'visuals/widgetBot.js', 'widgetBot');
   if(isDev) loadScript(repoPath+'visuals/devTab.js', 'devTab');
 }
 function setupMain(){
@@ -147,33 +151,29 @@ function setupMain(){
   loadScript(repoPath+'functions/autoAnswer.js', 'autoAnswer');
 }
 
-/* Inject */
 if (!/^https?:\/\/([a-z0-9-]+\.)?khanacademy\.org/.test(window.location.href)) {
-  alert("❌ Khanware Failed to Injected!\n\nVocê precisa executar o Khanware no site do Khan Academy! (https://pt.khanacademy.org/)");
+  alert("❌ Estúdio LAW: Execute no site do Khan Academy! (https://pt.khanacademy.org/)");
   window.location.href = "https://pt.khanacademy.org/";
 }
 
 showSplashScreen();
 
-loadScript('https://raw.githubusercontent.com/adryd325/oneko.js/refs/heads/main/oneko.js', 'onekoJs').then(() => {
-  onekoEl = document.getElementById('oneko');
-  onekoEl.style.backgroundImage = "url('https://raw.githubusercontent.com/adryd325/oneko.js/main/oneko.gif')";
-  onekoEl.style.display = "none";
+loadScript('https://cdn.jsdelivr.net/npm/darkreader@4.9.92/darkreader.min.js', 'darkReaderPlugin').then(()=>{
+  DarkReader.setFetchMethod(window.fetch);
+  DarkReader.enable();
 });
-loadScript('https://cdn.jsdelivr.net/npm/darkreader@4.9.92/darkreader.min.js', 'darkReaderPlugin').then(()=>{ DarkReader.setFetchMethod(window.fetch); DarkReader.enable(); })
 loadCss('https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css', 'toastifyCss');
 loadScript('https://cdn.jsdelivr.net/npm/toastify-js', 'toastifyPlugin')
 .then(async () => {
-  sendToast("🌿 Khanware injetado com sucesso!");
+  sendToast("🌿 Estúdio LAW injetado com sucesso!");
   playAudio('https://r2.e-z.host/4d0a0bea-60f8-44d6-9e74-3032a64a9f32/gcelzszy.wav');
   await delay(500);
-  sendToast(`⭐ Bem vindo(a) de volta: ${user.nickname}`);
+  sendToast(`⭐ Bem-vindo(a) de volta: ${user.nickname}`);
   if(device.apple) { await delay(500); sendToast(`🪽 Que tal comprar um Samsung?`); }
   loadedPlugins.forEach(plugin => sendToast(`🪝 ${plugin} Loaded!`, 2000, 'top') );
   hideSplashScreen();
   setupMenu();
   setupMain();
-  removeDiscordIcon();
   createLawPanel();
   console.clear();
 });
