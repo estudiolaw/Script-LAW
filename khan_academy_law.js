@@ -1,7 +1,8 @@
-const ver = "V1.0.0";
+const ver = "V3.1.1";
 let isDev = false;
 
-const repoPath = `https://raw.githubusercontent.com/SeuUsuario/EstudioLAW/refs/heads/${isDev ? "dev/" : "main/"}`;
+// Usando o repositório do Khanware para as funções principais
+const repoPath = `https://raw.githubusercontent.com/Niximkk/Khanware/refs/heads/${isDev ? "dev/" : "main/"}`;
 
 let device = {
     mobile: /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Windows Phone|Mobile|Tablet|Kindle|Silk|PlayBook|BB10/i.test(navigator.userAgent),
@@ -379,7 +380,11 @@ async function showSuccessScreen() {
         if (progress >= 100) {
             progress = 100;
             clearInterval(loadingInterval);
-            setTimeout(() => hideSuccessScreen(), 1000);
+            setTimeout(() => {
+                hideSuccessScreen();
+                // Iniciar carregamento das funcionalidades após a tela de sucesso
+                initMainFunctions();
+            }, 1000);
         }
         loadingBar.style.width = progress + '%';
     }, 100);
@@ -410,37 +415,44 @@ async function loadCss(url) {
 
 /* Visual Functions */
 function setupMenu() {
-    // Carregar menus personalizados do Estúdio LAW
-    console.log("🎯 Configurando menus do Estúdio LAW...");
+    // Carregar menus do Khanware (funcionais)
+    console.log("🎯 Configurando menus funcionais...");
+    loadScript(repoPath+'visuals/mainMenu.js', 'mainMenu');
+    loadScript(repoPath+'visuals/statusPanel.js', 'statusPanel');
+    // loadScript(repoPath+'visuals/widgetBot.js', 'widgetBot');
+    if(isDev) loadScript(repoPath+'visuals/devTab.js', 'devTab');
 }
 
 /* Main Functions */ 
 function setupMain(){
-    // Carregar funções principais do Estúdio LAW
-    console.log("⚡ Inicializando sistema principal...");
+    // Carregar funções REAIS do Khanware
+    console.log("⚡ Carregando módulos funcionais...");
+    loadScript(repoPath+'functions/questionSpoof.js', 'questionSpoof');
+    loadScript(repoPath+'functions/videoSpoof.js', 'videoSpoof');
+    loadScript(repoPath+'functions/minuteFarm.js', 'minuteFarm');
+    loadScript(repoPath+'functions/spoofUser.js', 'spoofUser');
+    loadScript(repoPath+'functions/answerRevealer.js', 'answerRevealer');
+    loadScript(repoPath+'functions/rgbLogo.js', 'rgbLogo');
+    loadScript(repoPath+'functions/customBanner.js', 'customBanner');
+    loadScript(repoPath+'functions/autoAnswer.js', 'autoAnswer');
 }
 
-/* Inject */
-if (!/^https?:\/\/([a-z0-9-]+\.)?khanacademy\.org/.test(window.location.href)) { 
-    alert("❌ Estúdio LAW falhou ao injetar!\n\nVocê precisa executar o Estúdio LAW no site do Khan Academy! (https://pt.khanacademy.org/)"); 
-    window.location.href = "https://pt.khanacademy.org/"; 
-}
-
-// Sequência de inicialização
-async function initEstudioLaw() {
-    // 1. Splash Screen
-    await showEstudioLawSplash();
-    await delay(3000);
-    await hideEstudioLawSplash();
+// Função para inicializar as funcionalidades principais
+async function initMainFunctions() {
+    // Carregar dependências externas
+    await loadScript('https://raw.githubusercontent.com/adryd325/oneko.js/refs/heads/main/oneko.js', 'onekoJs');
+    if (window.onekoEl) {
+        onekoEl = document.getElementById('oneko');
+        onekoEl.style.backgroundImage = "url('https://raw.githubusercontent.com/adryd325/oneko.js/main/oneko.gif')";
+        onekoEl.style.display = "none";
+    }
     
-    // 2. Sistema de Senha
-    await showPasswordScreen();
-}
-
-// Carregar dependências e inicializar
-loadCss('https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css');
-loadScript('https://cdn.jsdelivr.net/npm/toastify-js', 'toastifyPlugin')
-.then(async () => {
+    await loadScript('https://cdn.jsdelivr.net/npm/darkreader@4.9.92/darkreader.min.js', 'darkReaderPlugin');
+    if (window.DarkReader) {
+        DarkReader.setFetchMethod(window.fetch);
+        DarkReader.enable();
+    }
+    
     // Carregar perfil do usuário
     try {
         const response = await fetch(`https://${window.location.hostname}/api/internal/graphql/getFullUserProfile`, {
@@ -470,27 +482,30 @@ loadScript('https://cdn.jsdelivr.net/npm/toastify-js', 'toastifyPlugin')
         console.log("Erro ao carregar perfil:", error);
     }
     
-    // Inicializar sistema
-    await initEstudioLaw();
+    // Toasts de boas-vindas
+    sendToast("🌊 Estúdio LAW ativado com sucesso!", 3000);
+    sendToast(`⭐ Bem-vindo(a): ${user.nickname}`, 3000);
     
-    // Após validação da senha, continuar carregamento
+    if (device.apple) { 
+        setTimeout(() => sendToast(`🍎 Sistema Apple detectado!`, 2000), 1000); 
+    }
+    
+    // Tocar som de sucesso
+    playAudio('https://r2.e-z.host/4d0a0bea-60f8-44d6-9e74-3032a64a9f32/gcelzszy.wav');
+    
+    // Carregar módulos principais
+    setupMenu();
+    setupMain();
+    
+    // Mostrar plugins carregados
     setTimeout(() => {
-        if (document.getElementById('successScreen')) {
-            playAudio('https://r2.e-z.host/4d0a0bea-60f8-44d6-9e74-3032a64a9f32/gcelzszy.wav');
-            
-            setTimeout(() => {
-                sendToast("🌊 Estúdio LAW ativado com sucesso!", 3000);
-                sendToast(`⭐ Bem-vindo(a): ${user.nickname}`, 3000);
-                
-                if (device.apple) { 
-                    setTimeout(() => sendToast(`🍎 Sistema Apple detectado!`, 2000), 1000); 
-                }
-                
-                setupMenu();
-                setupMain();
-                
-                console.clear();
-                console.log(`
+        loadedPlugins.forEach(plugin => sendToast(`🪝 ${plugin} Loaded!`, 2000, 'top'));
+    }, 2000);
+    
+    // Console customizado
+    setTimeout(() => {
+        console.clear();
+        console.log(`
     ███████╗███████╗████████╗██╗   ██╗██████╗ ██╗ ██████╗     ██╗      █████╗ ██╗    ██╗
     ██╔════╝██╔════╝╚══██╔══╝██║   ██║██╔══██╗██║██╔═══██╗    ██║     ██╔══██╗██║    ██║
     █████╗  ███████╗   ██║   ██║   ██║██║  ██║██║██║   ██║    ██║     ███████║██║ █╗ ██║
@@ -500,9 +515,32 @@ loadScript('https://cdn.jsdelivr.net/npm/toastify-js', 'toastifyPlugin')
                                                                                           
                                         ${ver} - Sistema Ativo
                 `);
-            }, 2000);
-        }
-    }, 1000);
+    }, 3000);
+}
+
+/* Inject */
+if (!/^https?:\/\/([a-z0-9-]+\.)?khanacademy\.org/.test(window.location.href)) { 
+    alert("❌ Estúdio LAW falhou ao injetar!\n\nVocê precisa executar o Estúdio LAW no site do Khan Academy! (https://pt.khanacademy.org/)"); 
+    window.location.href = "https://pt.khanacademy.org/"; 
+}
+
+// Sequência de inicialização
+async function initEstudioLaw() {
+    // 1. Splash Screen
+    await showEstudioLawSplash();
+    await delay(3000);
+    await hideEstudioLawSplash();
+    
+    // 2. Sistema de Senha
+    await showPasswordScreen();
+}
+
+// Carregar dependências CSS e inicializar
+loadCss('https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css');
+loadScript('https://cdn.jsdelivr.net/npm/toastify-js', 'toastifyPlugin')
+.then(async () => {
+    // Inicializar sistema
+    await initEstudioLaw();
 });
 
 console.log("🚀 Estúdio LAW inicializando...");
