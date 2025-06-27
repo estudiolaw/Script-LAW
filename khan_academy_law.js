@@ -1,20 +1,16 @@
 // ==UserScript==
 // @name         Khan Academy LAW + Senhas com Hora, Comemoração e Abertura
-// @namespace    http://estudiolaw.com/
 // @version      1.3.1
 // @description  Painel de senhas com validade até hora exata, comemoração dinâmica, abertura animada, modo dark e automação Khan Academy (by Wesley1w2e)
-// @author       Wesley
-// @match        *://*.khanacademy.org/*
-// @match        *://khanacademy.org/*
-// @grant        none
+// @author       Wesley - Estúdio LAW
 // ==/UserScript==
 
 (async function() {
   // ==== 1) CONFIGURAÇÃO DE SENHAS COM VALIDADE E HORA ====
   const PASSWORDS = [
     { pass: "270425",     expires: "2026-01-31T23:59:59" },
-    { pass: "K@hnL4w*Sept",        expires: "2025-09-30T23:59:59" },
-    { pass: "StuD10-L@wOct",       expires: "2025-10-31T23:59:59" },
+    { pass: "kng120120",        expires: "2026-01-31T23:59:59" },
+    { pass: "dogmal",       expires: "2026-01-31T23:59:59" },
     { pass: "WesleyX_11#25",       expires: "2025-11-30T23:59:59" },
     { pass: "Proj3toBlue*Dez25",   expires: "2025-12-31T23:59:59" },
     { pass: "SegredoLAW$Jan26",    expires: "2026-01-31T23:59:59" },
