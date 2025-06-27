@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         Khanware + Estúdio LAW Password Panel - VERSÃO OLHINHO FIXED
+// @name         Khanware + Estúdio LAW Password Panel - OLHINHO E FUNCIONAL
 // @namespace    http://estudiolaw.com/
-// @version      4.0.1-ESTUDIO-LAW-PREMIUM
-// @description  Script Khanware com sistema de senha avançado, olhinho para mostrar senha e bugs corrigidos.
+// @version      4.0.2-ESTUDIO-LAW-PREMIUM
+// @description  Painel de senha com olhinho, senhas conferidas, bugs corrigidos. Pronto para usar ou publicar no GitHub.
 // @author       Wesley (Estúdio LAW), Niximkk, Ajustado por Copilot Chat Assistant
 // @match        https://www.khanacademy.org/*
 // @match        https://pt.khanacademy.org/*
@@ -12,9 +12,9 @@
 
 const CONFIG = {
   VALID_UNTIL: "2025-12-31",
-  VERSION: "4.0.1-PREMIUM",
+  VERSION: "4.0.2-PREMIUM",
   MAX_ATTEMPTS: 3,
-  LOCK_TIME: 300000, // 5 minutos em ms
+  LOCK_TIME: 300000, // 5 minutos
   PASSWORDS: [
     { pass: "law2025@premium", level: "premium", description: "Acesso Premium" },
     { pass: "estudiolaw!2025", level: "premium", description: "Estúdio LAW VIP" },
@@ -89,7 +89,7 @@ function showErrorModal(title, message) {
   document.body.appendChild(modal);
 }
 
-// PAINEL DE SENHA COM OLHINHO E FIX
+// Painel de senha com olhinho e bugfix
 function showAdvancedPasswordPanel() {
   return new Promise((resolve, reject) => {
     const today = new Date();
@@ -254,10 +254,7 @@ function showAdvancedPasswordPanel() {
     overlay.appendChild(panel);
     document.body.appendChild(overlay);
 
-    function cleanup() {
-      overlay.remove();
-    }
-
+    function cleanup() { overlay.remove(); }
     function showStatus(message, type = 'info') {
       const statusEl = document.getElementById('law-password-status');
       const colors = {
@@ -273,7 +270,6 @@ function showAdvancedPasswordPanel() {
         setTimeout(() => { panel.style.animation = 'shake 0.5s ease-in-out'; }, 10);
       }
     }
-
     function setLoading(loading) {
       const button = document.getElementById('law-password-submit');
       const buttonText = document.getElementById('button-text');
@@ -290,13 +286,12 @@ function showAdvancedPasswordPanel() {
         buttonLoader.style.display = 'none';
       }
     }
-
     async function validatePassword(password) {
       setLoading(true);
       showStatus('Verificando credenciais...', 'info');
       await new Promise(resolve => setTimeout(resolve, 800));
-      // BUG FIX: compara exatamente com as senhas, trims removidos
-      const validPassword = CONFIG.PASSWORDS.find(p => String(p.pass) === password);
+      // Conferência exata, sem trim
+      const validPassword = CONFIG.PASSWORDS.find(p => p.pass === password);
       if (validPassword) {
         showStatus('✅ Acesso autorizado!', 'success');
         SecureStorage.removeItem('law_attempts');
@@ -337,9 +332,8 @@ function showAdvancedPasswordPanel() {
       input.type = isVisible ? 'text' : 'password';
       toggleBtn.textContent = isVisible ? '🙈' : '👁️';
     };
-
     panel.querySelector('#law-password-submit').onclick = () => {
-      const password = input.value; // NÃO faz trim, senha pode ter espaço!
+      const password = input.value;
       if (password) {
         validatePassword(password);
       } else {
@@ -354,14 +348,27 @@ function showAdvancedPasswordPanel() {
   });
 }
 
-// Exemplo de uso: só painel de senha e alert
+// ===== EXEMPLO DE USO: painel some e segue seu código
 (async function(){
   try {
     const userAccess = await showAdvancedPasswordPanel();
     alert("Acesso liberado!\nBem-vindo ao Khanware + Estúdio LAW.\nNível: " + userAccess.description);
-    // ... continue aqui seu script...
+    // Aqui você pode continuar seu código customizado...
+    // Exemplo: window.location.reload();
   } catch (error) {
     if (typeof error === 'string') showErrorModal("Erro", error);
     else alert('Erro crítico ao inicializar o script!\n\n' + (error && error.message ? error.message : error));
   }
 })();
+
+// ===== SENHAS QUE FUNCIONAM =====
+// law2025@premium
+// estudiolaw!2025
+// wesley@developer
+// khanware.pro
+// lawaccess2025
+// premiumlaw@2025
+// studiolaw.dev
+// unlockkhan@law
+// projectlaw2025
+// masterkey@law
