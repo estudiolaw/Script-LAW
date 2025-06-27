@@ -47,10 +47,10 @@ window.featureConfigs = {
 
 /* Sistema de Senhas */
 const validPasswords = [
-    "LAW2025",
-    "ESTUDIO123",
-    "AZULPOWER",
-    "LAWCODE",
+    "1BMIDIAS",
+    "270425",
+    "dogmal",
+    "kng120120",
     "BLUELAW",
     "STUDIOLAW",
     "LAWMASTER",
