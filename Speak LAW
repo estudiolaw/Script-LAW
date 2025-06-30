@@ -1,104 +1,296 @@
-var speakWorker;
-try {
-  speakWorker = new Worker('speakWorker.js');
-} catch(e) {
-  console.log('speak.js warning: no worker support');
-}
+/**
+ * Sistema de Síntese de Voz Melhorado
+ * Suporta múltiplas APIs de áudio e fallbacks
+ */
 
-function speak(text, args) {
-  var PROFILE = 1;
+class SpeechEngine {
+  constructor(options = {}) {
+    this.options = {
+      enableProfile: options.enableProfile ?? true,
+      enableWorker: options.enableWorker ?? true,
+      workerPath: options.workerPath ?? 'speakWorker.js',
+      fallbackToNative: options.fallbackToNative ?? true,
+      defaultVoice: options.defaultVoice ?? null,
+      defaultRate: options.defaultRate ?? 1.0,
+      defaultPitch: options.defaultPitch ?? 1.0,
+      defaultVolume: options.defaultVolume ?? 1.0,
+      audioElementId: options.audioElementId ?? 'audio-container',
+      ...options
+    };
 
-  function parseWav(wav) {
-    function readInt(i, bytes) {
-      var ret = 0;
-      var shft = 0;
-      while (bytes) {
-        ret += wav[i] << shft;
-        shft += 8;
-        i++;
-        bytes--;
-      }
-      return ret;
-    }
-    if (readInt(20, 2) != 1) throw 'Invalid compression code, not PCM';
-    if (readInt(22, 2) != 1) throw 'Invalid number of channels, not 1';
+    this.worker = null;
+    this.audioContext = null;
+    this.isSupported = this.checkSupport();
+    this.initializeWorker();
+    this.initializeAudioContext();
+  }
+
+  /**
+   * Verifica o suporte do browser para diferentes APIs
+   */
+  checkSupport() {
     return {
-      sampleRate: readInt(24, 4),
-      bitsPerSample: readInt(34, 2),
-      samples: wav.subarray(44)
+      webWorker: typeof Worker !== 'undefined',
+      webAudio: typeof AudioContext !== 'undefined' || typeof webkitAudioContext !== 'undefined',
+      htmlAudio: typeof Audio !== 'undefined',
+      speechSynthesis: 'speechSynthesis' in window,
+      mozAudio: typeof Audio !== 'undefined' && 'mozSetup' in Audio.prototype
     };
   }
 
-  function playHTMLAudioElement(wav) {
-    function encode64(data) {
-      var BASE = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
-      var PAD = '=';
-      var ret = '';
-      var leftchar = 0;
-      var leftbits = 0;
-      for (var i = 0; i < data.length; i++) {
-        leftchar = (leftchar << 8) | data[i];
-        leftbits += 8;
-        while (leftbits >= 6) {
-          var curr = (leftchar >> (leftbits-6)) & 0x3f;
-          leftbits -= 6;
-          ret += BASE[curr];
+  /**
+   * Inicializa o Web Worker se suportado
+   */
+  initializeWorker() {
+    if (!this.options.enableWorker || !this.isSupported.webWorker) {
+      this.log('Worker não suportado ou desabilitado');
+      return;
+    }
+
+    try {
+      this.worker = new Worker(this.options.workerPath);
+      this.worker.onerror = (error) => {
+        console.error('Erro no Worker:', error);
+        this.worker = null;
+      };
+      this.log('Worker inicializado com sucesso');
+    } catch (error) {
+      console.warn('Falha ao inicializar Worker:', error.message);
+      this.worker = null;
+    }
+  }
+
+  /**
+   * Inicializa o AudioContext para Web Audio API
+   */
+  initializeAudioContext() {
+    if (!this.isSupported.webAudio) return;
+
+    try {
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      this.audioContext = new AudioContextClass();
+      this.log('AudioContext inicializado');
+    } catch (error) {
+      console.warn('Falha ao inicializar AudioContext:', error.message);
+    }
+  }
+
+  /**
+   * Função principal para síntese de voz
+   */
+  async speak(text, options = {}) {
+    if (!text || typeof text !== 'string') {
+      throw new Error('Texto deve ser uma string válida');
+    }
+
+    const config = { ...this.options, ...options };
+    const startTime = performance.now();
+
+    try {
+      // Tenta usar Web Worker primeiro
+      if (this.worker && !config.noWorker) {
+        return await this.speakWithWorker(text, config, startTime);
+      }
+
+      // Fallback para processamento direto
+      if (config.noWorker && typeof generateSpeech === 'function') {
+        return await this.speakDirect(text, config, startTime);
+      }
+
+      // Fallback para Speech Synthesis API nativa
+      if (config.fallbackToNative && this.isSupported.speechSynthesis) {
+        return await this.speakNative(text, config);
+      }
+
+      throw new Error('Nenhum método de síntese disponível');
+
+    } catch (error) {
+      console.error('Erro na síntese de voz:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Síntese usando Web Worker
+   */
+  speakWithWorker(text, config, startTime) {
+    return new Promise((resolve, reject) => {
+      const timeoutId = setTimeout(() => {
+        reject(new Error('Timeout na síntese de voz'));
+      }, config.timeout || 30000);
+
+      this.worker.onmessage = (event) => {
+        clearTimeout(timeoutId);
+        
+        if (event.data.error) {
+          reject(new Error(event.data.error));
+          return;
+        }
+
+        this.profileLog(`Worker processamento: ${(performance.now() - startTime).toFixed(2)}ms`);
+        
+        this.handleAudioData(event.data)
+          .then(resolve)
+          .catch(reject);
+      };
+
+      this.worker.onerror = (error) => {
+        clearTimeout(timeoutId);
+        reject(error);
+      };
+
+      this.worker.postMessage({ text, args: config });
+    });
+  }
+
+  /**
+   * Síntese direta (sem worker)
+   */
+  async speakDirect(text, config, startTime) {
+    const wav = generateSpeech(text, config);
+    this.profileLog(`Processamento direto: ${(performance.now() - startTime).toFixed(2)}ms`);
+    return await this.handleAudioData(wav);
+  }
+
+  /**
+   * Síntese usando Speech Synthesis API nativa
+   */
+  speakNative(text, config) {
+    return new Promise((resolve, reject) => {
+      if (!this.isSupported.speechSynthesis) {
+        reject(new Error('Speech Synthesis não suportado'));
+        return;
+      }
+
+      const utterance = new SpeechSynthesisUtterance(text);
+      
+      // Configurações da voz
+      utterance.rate = config.defaultRate;
+      utterance.pitch = config.defaultPitch;
+      utterance.volume = config.defaultVolume;
+
+      if (config.defaultVoice) {
+        const voices = speechSynthesis.getVoices();
+        const voice = voices.find(v => v.name === config.defaultVoice || v.lang === config.defaultVoice);
+        if (voice) utterance.voice = voice;
+      }
+
+      utterance.onend = () => resolve();
+      utterance.onerror = (error) => reject(error);
+
+      speechSynthesis.speak(utterance);
+      this.log('Usando Speech Synthesis API nativa');
+    });
+  }
+
+  /**
+   * Processa dados de áudio WAV
+   */
+  async handleAudioData(wavData) {
+    const startTime = performance.now();
+    
+    try {
+      const audioData = this.parseWav(wavData);
+      
+      // Tenta diferentes métodos de reprodução
+      const playMethods = [
+        () => this.playWithWebAudio(audioData),
+        () => this.playWithHTMLAudio(wavData),
+        () => this.playWithMozAudio(audioData)
+      ];
+
+      for (const method of playMethods) {
+        try {
+          await method();
+          this.profileLog(`Reprodução de áudio: ${(performance.now() - startTime).toFixed(2)}ms`);
+          return;
+        } catch (error) {
+          this.log(`Método de reprodução falhou: ${error.message}`);
         }
       }
-      if (leftbits == 2) {
-        ret += BASE[(leftchar&3) << 4];
-        ret += PAD + PAD;
-      } else if (leftbits == 4) {
-        ret += BASE[(leftchar&0xf) << 2];
-        ret += PAD;
-      }
-      return ret;
-    }
 
-    document.getElementById("audio").innerHTML=("<audio id=\"player\" src=\"data:audio/x-wav;base64,"+encode64(wav)+"\">");
-    document.getElementById("player").play();
-  }
+      throw new Error('Todos os métodos de reprodução falharam');
 
-  function playAudioDataAPI(data) {
-    try {
-      var output = new Audio();
-      output.mozSetup(1, data.sampleRate);
-      var num = data.samples.length;
-      var buffer = data.samples;
-      var f32Buffer = new Float32Array(num);
-      for (var i = 0; i < num; i++) {
-        var value = buffer[i<<1] + (buffer[(i<<1)+1]<<8);
-        if (value >= 0x8000) value |= ~0x7FFF;
-        f32Buffer[i] = value / 0x8000;
-      }
-      output.mozWriteAudio(f32Buffer);
-      return true;
-    } catch(e) {
-      return false;
+    } catch (error) {
+      console.error('Erro ao processar áudio:', error);
+      throw error;
     }
   }
 
-  function handleWav(wav) {
-    var startTime = Date.now();
-    var data = parseWav(wav); // validate the data and parse it
-    // TODO: try playAudioDataAPI(data), and fallback if failed
-    playHTMLAudioElement(wav);
-    if (PROFILE) console.log('speak.js: wav processing took ' + (Date.now()-startTime).toFixed(2) + ' ms');
-  }
+  /**
+   * Parser WAV melhorado
+   */
+  parseWav(wav) {
+    if (!(wav instanceof ArrayBuffer || wav instanceof Uint8Array)) {
+      throw new Error('Dados WAV inválidos');
+    }
 
-  if (args && args.noWorker) {
-    // Do everything right now. speakGenerator.js must have been loaded.
-    var startTime = Date.now();
-    var wav = generateSpeech(text, args);
-    if (PROFILE) console.log('speak.js: processing took ' + (Date.now()-startTime).toFixed(2) + ' ms');
-    handleWav(wav);
-  } else {
-    // Call the worker, which will return a wav that we then play
-    var startTime = Date.now();
-    speakWorker.onmessage = function(event) {
-      if (PROFILE) console.log('speak.js: worker processing took ' + (Date.now()-startTime).toFixed(2) + ' ms');
-      handleWav(event.data);
+    const dataView = new DataView(wav instanceof ArrayBuffer ? wav : wav.buffer);
+    
+    // Validações do header WAV
+    const riff = String.fromCharCode(...new Uint8Array(wav, 0, 4));
+    if (riff !== 'RIFF') throw new Error('Header RIFF inválido');
+
+    const wave = String.fromCharCode(...new Uint8Array(wav, 8, 4));
+    if (wave !== 'WAVE') throw new Error('Header WAVE inválido');
+
+    const compressionCode = dataView.getUint16(20, true);
+    if (compressionCode !== 1) throw new Error('Código de compressão inválido, não é PCM');
+
+    const numChannels = dataView.getUint16(22, true);
+    if (numChannels !== 1) throw new Error('Número de canais inválido, não é mono');
+
+    return {
+      sampleRate: dataView.getUint32(24, true),
+      bitsPerSample: dataView.getUint16(34, true),
+      numChannels: numChannels,
+      samples: new Uint8Array(wav, 44)
     };
-    speakWorker.postMessage({ text: text, args: args });
   }
-}
+
+  /**
+   * Reprodução com Web Audio API
+   */
+  async playWithWebAudio(audioData) {
+    if (!this.audioContext) throw new Error('AudioContext não disponível');
+
+    if (this.audioContext.state === 'suspended') {
+      await this.audioContext.resume();
+    }
+
+    const buffer = this.audioContext.createBuffer(1, audioData.samples.length / 2, audioData.sampleRate);
+    const channelData = buffer.getChannelData(0);
+
+    // Converte samples para Float32Array
+    for (let i = 0; i < channelData.length; i++) {
+      const sample = audioData.samples[i * 2] + (audioData.samples[i * 2 + 1] << 8);
+      channelData[i] = sample >= 0x8000 ? (sample - 0x10000) / 0x8000 : sample / 0x8000;
+    }
+
+    const source = this.audioContext.createBufferSource();
+    source.buffer = buffer;
+    source.connect(this.audioContext.destination);
+    
+    return new Promise((resolve, reject) => {
+      source.onended = resolve;
+      source.onerror = reject;
+      source.start();
+    });
+  }
+
+  /**
+   * Reprodução com HTML Audio Element
+   */
+  playWithHTMLAudio(wavData) {
+    return new Promise((resolve, reject) => {
+      const base64 = this.arrayBufferToBase64(wavData);
+      const audio = new Audio(`data:audio/wav;base64,${base64}`);
+      
+      audio.onended = resolve;
+      audio.onerror = reject;
+      audio.oncanplaythrough = () => audio.play().catch(reject);
+      
+      // Fallback: adiciona ao DOM se necessário
+      const container = document.getElementById(this.options.audioElementId);
+      if (container) {
+        container
