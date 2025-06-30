@@ -45,19 +45,115 @@ window.featureConfigs = {
     customPfp: ""
 };
 
-/* Sistema de Senhas */
-const validPasswords = [
-    "1BMIDIAS",
-    "270425",
-    "dogmal",
-    "kng120120",
-    "BLUELAW",
-    "STUDIOLAW",
-    "LAWMASTER",
-    "AZULSTUDIO",
-    "LAWACCESS",
-    "ESTUDIOAZUL"
-];
+/* Sistema de Senhas com Vencimento Individual */
+const passwordSystem = {
+    passwords: [
+        {
+            password: "1BMIDIAS",
+            name: "Licença Básica Midias",
+            expiryDate: "2025-12-31",
+            description: "Acesso básico ao sistema"
+        },
+        {
+            password: "270425",
+            name: "Licença Especial",
+            expiryDate: "2025-08-15",
+            description: "Licença com data específica"
+        },
+        {
+            password: "dogmal",
+            name: "Licença Desenvolvimento",
+            expiryDate: "2025-09-30",
+            description: "Acesso para desenvolvimento"
+        },
+        {
+            password: "kng120120",
+            name: "Licença KNG",
+            expiryDate: "2025-07-20",
+            description: "Licença personalizada KNG"
+        },
+        {
+            password: "BLUELAW",
+            name: "Licença Blue Law",
+            expiryDate: "2026-01-15",
+            description: "Licença premium Blue Law"
+        },
+        {
+            password: "STUDIOLAW",
+            name: "Licença Studio Law",
+            expiryDate: "2025-11-30",
+            description: "Licença completa do estúdio"
+        },
+        {
+            password: "LAWMASTER",
+            name: "Licença Master",
+            expiryDate: "2026-03-31",
+            description: "Licença com todos os recursos"
+        },
+        {
+            password: "AZULSTUDIO",
+            name: "Licença Azul Studio",
+            expiryDate: "2025-10-15",
+            description: "Licença do estúdio azul"
+        },
+        {
+            password: "LAWACCESS",
+            name: "Licença de Acesso",
+            expiryDate: "2025-08-30",
+            description: "Licença de acesso padrão"
+        },
+        {
+            password: "ESTUDIOAZUL",
+            name: "Licença Estúdio Azul",
+            expiryDate: "2025-12-15",
+            description: "Licença premium do estúdio azul"
+        }
+    ],
+
+    // Função para validar senha e verificar vencimento
+    validatePassword(inputPassword) {
+        const password = this.passwords.find(p => p.password === inputPassword);
+        
+        if (!password) {
+            return { valid: false, reason: "Senha não encontrada" };
+        }
+
+        const currentDate = new Date();
+        const expiryDate = new Date(password.expiryDate);
+        
+        if (currentDate > expiryDate) {
+            return { 
+                valid: false, 
+                reason: "Senha expirada", 
+                expiredDate: password.expiryDate,
+                passwordName: password.name
+            };
+        }
+
+        return { 
+            valid: true, 
+            password: password,
+            daysUntilExpiry: Math.ceil((expiryDate - currentDate) / (1000 * 60 * 60 * 24))
+        };
+    },
+
+    // Função para obter informações da senha (para administradores)
+    getPasswordInfo(inputPassword) {
+        const password = this.passwords.find(p => p.password === inputPassword);
+        return password || null;
+    },
+
+    // Função para listar todas as senhas (apenas para debug/admin)
+    listAllPasswords() {
+        return this.passwords.map(p => ({
+            name: p.name,
+            password: p.password,
+            expiryDate: p.expiryDate,
+            description: p.description,
+            daysRemaining: Math.ceil((new Date(p.expiryDate) - new Date()) / (1000 * 60 * 60 * 24))
+        }));
+    }
+};
 
 /* Security */
 document.addEventListener('contextmenu', (e) => !window.disableSecurity && e.preventDefault());
@@ -183,7 +279,7 @@ async function hideEstudioLawSplash() {
     setTimeout(() => splashScreen.remove(), 1000);
 }
 
-// Sistema de Senha
+// Sistema de Senha com Vencimento
 async function showPasswordScreen() {
     const currentTime = new Date().toLocaleString('pt-BR');
     
@@ -247,6 +343,11 @@ async function showPasswordScreen() {
                 opacity: 0; transition: opacity 0.3s ease;
             "></div>
             
+            <div id="passwordSuccess" style="
+                color: #44ff44; margin-top: 15px; font-size: 0.9em;
+                opacity: 0; transition: opacity 0.3s ease;
+            "></div>
+            
             <div style="margin-top: 30px; color: #666; font-size: 0.8em;">
                 Tentativas restantes: <span id="attempts">3</span>
             </div>
@@ -260,6 +361,7 @@ async function showPasswordScreen() {
     const passwordInput = document.getElementById('lawPassword');
     const submitButton = document.getElementById('lawSubmit');
     const errorDiv = document.getElementById('passwordError');
+    const successDiv = document.getElementById('passwordSuccess');
     const attemptsSpan = document.getElementById('attempts');
     
     // Efeitos visuais no input
@@ -273,37 +375,73 @@ async function showPasswordScreen() {
         passwordInput.style.borderColor = '#00aaff';
     });
     
-    // Função de validação
+    // Função de validação com sistema de vencimento
     const validatePassword = () => {
-        const password = passwordInput.value.trim();
+        const inputPassword = passwordInput.value.trim();
+        const validation = passwordSystem.validatePassword(inputPassword);
         
-        if (validPasswords.includes(password)) {
-            hidePasswordScreen();
-            showSuccessScreen();
+        if (validation.valid) {
+            // Senha válida
+            const passwordInfo = validation.password;
+            const daysUntilExpiry = validation.daysUntilExpiry;
+            
+            // Mostrar informações da licença
+            successDiv.innerHTML = `
+                ✅ Licença: ${passwordInfo.name}<br>
+                📅 Válida até: ${new Date(passwordInfo.expiryDate).toLocaleDateString('pt-BR')}<br>
+                ⏰ ${daysUntilExpiry} dias restantes
+            `;
+            successDiv.style.opacity = '1';
+            
+            // Armazenar informações da licença para uso no sistema
+            window.currentLicense = {
+                name: passwordInfo.name,
+                description: passwordInfo.description,
+                expiryDate: passwordInfo.expiryDate,
+                daysRemaining: daysUntilExpiry
+            };
+            
+            setTimeout(() => {
+                hidePasswordScreen();
+                showSuccessScreen();
+            }, 2000);
+            
             return true;
         } else {
+            // Senha inválida ou expirada
             attempts--;
             attemptsSpan.textContent = attempts;
             
+            if (validation.reason === "Senha expirada") {
+                errorDiv.innerHTML = `
+                    ❌ Licença "${validation.passwordName}" expirou!<br>
+                    📅 Vencimento: ${new Date(validation.expiredDate).toLocaleDateString('pt-BR')}
+                `;
+            } else {
+                errorDiv.textContent = validation.reason;
+            }
+            
+            errorDiv.style.opacity = '1';
+            
             if (attempts <= 0) {
-                errorDiv.textContent = "Acesso negado! Redirecionando...";
-                errorDiv.style.opacity = '1';
+                errorDiv.innerHTML = `
+                    🚫 Acesso negado! Tentativas esgotadas.<br>
+                    Redirecionando...
+                `;
                 setTimeout(() => {
                     window.location.href = "https://pt.khanacademy.org/";
-                }, 2000);
+                }, 3000);
             } else {
-                errorDiv.textContent = `Senha incorreta! ${attempts} tentativa(s) restante(s)`;
-                errorDiv.style.opacity = '1';
-                passwordInput.style.borderColor = '#ff4444';
-                passwordInput.style.boxShadow = '0 0 15px rgba(255, 68, 68, 0.3)';
-                
                 setTimeout(() => {
                     passwordInput.style.borderColor = '#00aaff';
                     passwordInput.style.boxShadow = 'none';
                     errorDiv.style.opacity = '0';
-                }, 3000);
+                    successDiv.style.opacity = '0';
+                }, 4000);
             }
             
+            passwordInput.style.borderColor = '#ff4444';
+            passwordInput.style.boxShadow = '0 0 15px rgba(255, 68, 68, 0.3)';
             passwordInput.value = '';
             return false;
         }
@@ -323,8 +461,10 @@ async function hidePasswordScreen() {
     setTimeout(() => passwordScreen.remove(), 1000);
 }
 
-// Tela de Sucesso
+// Tela de Sucesso com informações da licença
 async function showSuccessScreen() {
+    const license = window.currentLicense;
+    
     successScreen.style.cssText = `
         position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9997;
         display: flex; align-items: center; justify-content: center;
@@ -347,8 +487,15 @@ async function showSuccessScreen() {
             <div style="color: #ffffff; font-size: 2.5em; font-weight: bold; margin-bottom: 15px;">
                 ACESSO AUTORIZADO
             </div>
-            <div style="color: #66ff66; font-size: 1.3em; margin-bottom: 30px;">
-                Bem-vindo ao Estúdio LAW
+            <div style="color: #66ff66; font-size: 1.3em; margin-bottom: 20px;">
+                ${license.name}
+            </div>
+            <div style="color: #ccffcc; font-size: 1em; margin-bottom: 20px;">
+                ${license.description}
+            </div>
+            <div style="color: #ffff66; font-size: 0.9em; margin-bottom: 30px;">
+                📅 Válida até: ${new Date(license.expiryDate).toLocaleDateString('pt-BR')}<br>
+                ⏰ ${license.daysRemaining} dias restantes
             </div>
             <div style="color: #ccffcc; font-size: 1em;">
                 Carregando sistema...
@@ -482,9 +629,16 @@ async function initMainFunctions() {
         console.log("Erro ao carregar perfil:", error);
     }
     
-    // Toasts de boas-vindas
+    // Toasts de boas-vindas com informações da licença
+    const license = window.currentLicense;
     sendToast("🌊 Estúdio LAW ativado com sucesso!", 3000);
     sendToast(`⭐ Bem-vindo(a): ${user.nickname}`, 3000);
+    sendToast(`🎫 Licença: ${license.name}`, 3000);
+    
+    // Aviso se a licença está próxima do vencimento (menos de 30 dias)
+    if (license.daysRemaining <= 30) {
+        sendToast(`⚠️ Licença expira em ${license.daysRemaining} dias`, 5000);
+    }
     
     if (device.apple) { 
         setTimeout(() => sendToast(`🍎 Sistema Apple detectado!`, 2000), 1000); 
@@ -499,48 +653,4 @@ async function initMainFunctions() {
     
     // Mostrar plugins carregados
     setTimeout(() => {
-        loadedPlugins.forEach(plugin => sendToast(`🪝 ${plugin} Loaded!`, 2000, 'top'));
-    }, 2000);
-    
-    // Console customizado
-    setTimeout(() => {
-        console.clear();
-        console.log(`
-    ███████╗███████╗████████╗██╗   ██╗██████╗ ██╗ ██████╗     ██╗      █████╗ ██╗    ██╗
-    ██╔════╝██╔════╝╚══██╔══╝██║   ██║██╔══██╗██║██╔═══██╗    ██║     ██╔══██╗██║    ██║
-    █████╗  ███████╗   ██║   ██║   ██║██║  ██║██║██║   ██║    ██║     ███████║██║ █╗ ██║
-    ██╔══╝  ╚════██║   ██║   ██║   ██║██║  ██║██║██║   ██║    ██║     ██╔══██║██║███╗██║
-    ███████╗███████║   ██║   ╚██████╔╝██████╔╝██║╚██████╔╝    ███████╗██║  ██║╚███╔███╔╝
-    ╚══════╝╚══════╝   ╚═╝    ╚═════╝ ╚═════╝ ╚═╝ ╚═════╝     ╚══════╝╚═╝  ╚═╝ ╚══╝╚══╝ 
-                                                                                          
-                                        ${ver} - Sistema Ativo
-                `);
-    }, 3000);
-}
-
-/* Inject */
-if (!/^https?:\/\/([a-z0-9-]+\.)?khanacademy\.org/.test(window.location.href)) { 
-    alert("❌ Estúdio LAW falhou ao injetar!\n\nVocê precisa executar o Estúdio LAW no site do Khan Academy! (https://pt.khanacademy.org/)"); 
-    window.location.href = "https://pt.khanacademy.org/"; 
-}
-
-// Sequência de inicialização
-async function initEstudioLaw() {
-    // 1. Splash Screen
-    await showEstudioLawSplash();
-    await delay(3000);
-    await hideEstudioLawSplash();
-    
-    // 2. Sistema de Senha
-    await showPasswordScreen();
-}
-
-// Carregar dependências CSS e inicializar
-loadCss('https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css');
-loadScript('https://cdn.jsdelivr.net/npm/toastify-js', 'toastifyPlugin')
-.then(async () => {
-    // Inicializar sistema
-    await initEstudioLaw();
-});
-
-console.log("🚀 Estúdio LAW inicializando...");
+        loadedPlugins.forEach(plugin => sendToast(`🪝 ${plugin} Loaded!`, 2000, 'top
