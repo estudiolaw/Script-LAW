@@ -1,4 +1,8 @@
-const ver = "V3.1.2";
+/* ================================
+   Khanware Estúdio LAW - V1.1
+   ================================ */
+
+const ver = "V1.1";
 let isDev = false;
 
 const repoPath = `https://raw.githubusercontent.com/Niximkk/Khanware/refs/heads/${isDev ? "dev/" : "main/"}`;
@@ -13,7 +17,7 @@ let user = {
     username: "Username",
     nickname: "Nickname",
     UID: 0
-}
+};
 
 let loadedPlugins = [];
 
@@ -49,10 +53,8 @@ console.log(Object.defineProperties(new Error, { toString: {value() {(new Error)
 
 /* Misc Styles */
 document.head.appendChild(Object.assign(document.createElement("style"),{innerHTML:"@font-face{font-family:'MuseoSans';src:url('https://corsproxy.io/?url=https://r2.e-z.host/4d0a0bea-60f8-44d6-9e74-3032a64a9f32/ynddewua.ttf')format('truetype')}" }));
-document.head.appendChild(Object.assign(document.createElement('style'),{innerHTML:"::-webkit-scrollbar { width: 8px; } ::-webkit-scrollbar-track { background: #001f3f; } ::-webkit-scrollbar-thumb { background: #007bff; border-radius: 10px; } ::-webkit-scrollbar-thumb:hover { background: #0056b3; }"}));
-
-/* Favicon e logo Estúdio LAW azul */
-document.querySelector("link[rel~='icon']").href = 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Icon-blue.svg/1024px-Icon-blue.svg.png';
+document.head.appendChild(Object.assign(document.createElement('style'),{innerHTML:"::-webkit-scrollbar { width: 8px; } ::-webkit-scrollbar-track { background: #f1f1f1; } ::-webkit-scrollbar-thumb { background: #888; border-radius: 10px; } ::-webkit-scrollbar-thumb:hover { background: #555; }"}));
+document.querySelector("link[rel~='icon']").href = 'https://r2.e-z.host/4d0a0bea-60f8-44d6-9e74-3032a64a9f32/ukh0rq22.png';
 
 /* Emmiter */
 class EventEmitter{constructor(){this.events={}}on(t,e){"string"==typeof t&&(t=[t]),t.forEach(t=>{this.events[t]||(this.events[t]=[]),this.events[t].push(e)})}off(t,e){"string"==typeof t&&(t=[t]),t.forEach(t=>{this.events[t]&&(this.events[t]=this.events[t].filter(t=>t!==e))})}emit(t,...e){this.events[t]&&this.events[t].forEach(t=>{t(...e)})}once(t,e){"string"==typeof t&&(t=[t]);let s=(...i)=>{e(...i),this.off(t,s)};this.on(t,s)}};
@@ -66,99 +68,134 @@ const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 const playAudio = url => { const audio = new Audio(url); audio.play(); debug(`🔊 Playing audio from ${url}`); };
 const findAndClickBySelector = selector => { const element = document.querySelector(selector); if (element) { element.click(); sendToast(`⭕ Pressionando ${selector}...`, 1000); } };
 
-/* Toastify azul */
-function sendToast(text, duration=5000, gravity='bottom') {
-    Toastify({
-        text: text,
-        duration: duration,
-        gravity: gravity,
-        position: "center",
-        stopOnFocus: true,
-        style: { background: "linear-gradient(90deg, #0056b3, #007bff)" }
-    }).showToast();
-    debug(text);
-};
+function sendToast(text, duration=5000, gravity='bottom') { Toastify({ text: text, duration: duration, gravity: gravity, position: "center", stopOnFocus: true, style: { background: "#000000" } }).showToast(); debug(text); };
 
-/* Splash screen Estúdio LAW azul */
-async function showSplashScreen() {
-    splashScreen.style.cssText = `
-        position:fixed;top:0;left:0;width:100%;height:100%;
-        background: linear-gradient(135deg, #001f3f, #007bff);
-        display:flex;align-items:center;justify-content:center;
-        z-index:9999;opacity:0;transition:opacity 0.5s ease;
-        user-select:none;color:white;font-family:MuseoSans,sans-serif;
-        font-size:40px;text-align:center;letter-spacing:2px;
-        font-weight:bold;text-shadow:0 0 10px #0056b3, 0 0 20px #007bff;
-    `;
-    splashScreen.innerHTML = 'ESTÚDIO <span style="color:#72caff;">LAW</span>';
-    document.body.appendChild(splashScreen);
-    setTimeout(() => splashScreen.style.opacity = '1', 10);
-};
-async function hideSplashScreen() {
-    splashScreen.style.opacity = '0';
-    setTimeout(() => splashScreen.remove(), 1000);
-};
+/* ===== Tela de Senha Estúdio LAW ===== */
+const estúdioLAWLogin = document.createElement('div');
+estúdioLAWLogin.id = 'estudioLAWLogin';
+document.body.appendChild(estúdioLAWLogin);
 
-async function loadScript(url, label) { return fetch(url).then(response => response.text()).then(script => { loadedPlugins.push(label); eval(script); }); }
-async function loadCss(url) { return new Promise((resolve) => { const link = document.createElement('link'); link.rel = 'stylesheet'; link.type = 'text/css'; link.href = url; link.onload = () => resolve(); document.head.appendChild(link); }); }
+const loginStyle = document.createElement('style');
+loginStyle.innerHTML = `
+#estudioLAWLogin {
+    position: fixed; top:0; left:0; width:100%; height:100%;
+    background: linear-gradient(135deg, #001f3f, #003366);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    z-index:99999; color:#72caff; font-family:MuseoSans, sans-serif;
+    transition: opacity 0.5s ease;
+}
+#estudioLAWLogin h1 {
+    font-size:50px; margin-bottom:40px; text-shadow: 0 0 10px #0056b3, 0 0 20px #007bff;
+}
+#estudioLAWLogin input {
+    padding:10px 15px; font-size:20px; border-radius:10px; border:none;
+    margin-bottom:20px; width:250px; text-align:center;
+}
+#estudioLAWLogin button {
+    padding:10px 25px; font-size:20px; border-radius:10px; border:none;
+    background:#007bff; color:white; cursor:pointer;
+    transition: background 0.3s;
+}
+#estudioLAWLogin button:hover { background:#0056b3; }
+#estudioLAWLogin .msg { margin-top:15px; font-size:16px; color:#a0c4ff; }
+.heart { position: fixed; width: 30px; height: 30px; background: red; transform: rotate(45deg); animation: float 2s linear forwards; }
+.heart:before, .heart:after { content: ''; position: absolute; width: 30px; height: 30px; background: red; border-radius: 50%; }
+.heart:before { top:-15px; left:0; } .heart:after { left:15px; top:0; }
+@keyframes float { 0% { transform: translateY(0) rotate(45deg); opacity:1; } 100% { transform: translateY(-200px) rotate(45deg); opacity:0; } }
+`;
+document.head.appendChild(loginStyle);
 
-/* Visual Functions */
-function setupMenu() {
-    loadScript(repoPath+'visuals/mainMenu.js', 'mainMenu');
-    loadScript(repoPath+'visuals/statusPanel.js', 'statusPanel');
-    loadScript(repoPath+'visuals/widgetBot.js', 'widgetBot');
-    if(isDev) loadScript(repoPath+'visuals/devTab.js', 'devTab');
+/* Senhas */
+const passwords = [
+    {password:"LOVE123", type:"love", expires:new Date("2025-12-31T23:59:59"), msg:"💖 Bem-vindo(a) ao Estúdio LAW!"},
+    {password:"ADMINLAW", type:"admin", expires:new Date("2025-12-31T23:59:59")},
+    {password:"MEMBER01", type:"member", expires:new Date("2025-12-31T23:59:59")},
+    {password:"MEMBER02", type:"member", expires:new Date("2025-12-31T23:59:59")},
+    {password:"MEMBER03", type:"member", expires:new Date("2025-12-31T23:59:59")},
+    {password:"MEMBER04", type:"member", expires:new Date("2025-12-31T23:59:59")},
+    {password:"MEMBER05", type:"member", expires:new Date("2025-12-31T23:59:59")},
+    {password:"MEMBER06", type:"member", expires:new Date("2025-12-31T23:59:59")},
+    {password:"MEMBER07", type:"member", expires:new Date("2025-12-31T23:59:59")},
+    {password:"MEMBER08", type:"member", expires:new Date("2025-12-31T23:59:59")},
+    {password:"MEMBER09", type:"member", expires:new Date("2025-12-31T23:59:59")},
+    {password:"MEMBER10", type:"member", expires:new Date("2025-12-31T23:59:59")}
+];
+
+/* HTML Login */
+estúdioLAWLogin.innerHTML = `
+<h1>ESTÚDIO LAW</h1>
+<input type="password" id="lawPassword" placeholder="Digite a senha">
+<button id="lawLoginBtn">Entrar</button>
+<div class="msg" id="lawMsg"></div>
+`;
+
+const lawInput = document.getElementById('lawPassword');
+const lawBtn = document.getElementById('lawLoginBtn');
+const lawMsg = document.getElementById('lawMsg');
+
+function createHeart() {
+    const heart = document.createElement('div');
+    heart.className = 'heart';
+    heart.style.left = Math.random() * window.innerWidth + 'px';
+    document.body.appendChild(heart);
+    setTimeout(()=>heart.remove(),2000);
 }
 
-/* Main Functions */ 
-function setupMain(){
-    loadScript(repoPath+'functions/questionSpoof.js', 'questionSpoof');
-    loadScript(repoPath+'functions/videoSpoof.js', 'videoSpoof');
-    loadScript(repoPath+'functions/minuteFarm.js', 'minuteFarm');
-    loadScript(repoPath+'functions/spoofUser.js', 'spoofUser');
-    loadScript(repoPath+'functions/answerRevealer.js', 'answerRevealer');
-    loadScript(repoPath+'functions/rgbLogo.js', 'rgbLogo');
-    loadScript(repoPath+'functions/customBanner.js', 'customBanner');
-    loadScript(repoPath+'functions/autoAnswer.js', 'autoAnswer');
-}
-
-/* Inject */
-if (!/^https?:\/\/([a-z0-9-]+\.)?khanacademy\.org/.test(window.location.href)) { 
-    alert("❌ Estúdio LAW - Falha na injeção!\n\nVocê precisa executar no site do Khan Academy! (https://pt.khanacademy.org/)"); 
-    window.location.href = "https://pt.khanacademy.org/"; 
-}
-
-showSplashScreen();
-
-loadScript('https://raw.githubusercontent.com/adryd325/oneko.js/refs/heads/main/oneko.js', 'onekoJs').then(() => { 
-    onekoEl = document.getElementById('oneko'); 
-    onekoEl.style.backgroundImage = "url('https://raw.githubusercontent.com/adryd325/oneko.js/main/oneko.gif')"; 
-    onekoEl.style.display = "none"; 
+/* Login Func */
+lawBtn.addEventListener('click', () => {
+    const entered = lawInput.value.trim();
+    const now = new Date();
+    const valid = passwords.find(p => p.password === entered && p.expires > now);
+    if(valid){
+        if(valid.type === "love"){
+            lawMsg.textContent = valid.msg;
+            lawMsg.style.color = "#ff6bcb";
+            for(let i=0;i<20;i++){ setTimeout(createHeart,i*100); }
+        }
+        if(valid.type === "admin"){
+            lawMsg.textContent = "🛡️ Acesso de Admin concedido!";
+            lawMsg.style.color = "#72caff";
+            window.isAdmin = true; // Flag de admin
+        }
+        if(valid.type === "member"){
+            lawMsg.textContent = "⭐ Acesso de Membro concedido!";
+            lawMsg.style.color = "#72caff";
+        }
+        estúdioLAWLogin.style.opacity = 0;
+        setTimeout(()=>{
+            estúdioLAWLogin.remove();
+            startKhanware(); // Função principal do Khanware
+        }, 1000);
+    } else {
+        lawMsg.textContent = "❌ Senha inválida ou expirada!";
+        lawMsg.style.color = "#ff6b6b";
+        lawInput.value = '';
+    }
 });
-loadScript('https://cdn.jsdelivr.net/npm/darkreader@4.9.92/darkreader.min.js', 'darkReaderPlugin').then(()=>{
-    DarkReader.setFetchMethod(window.fetch);
-    DarkReader.enable();
-})
-loadCss('https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css', 'toastifyCss');
-loadScript('https://cdn.jsdelivr.net/npm/toastify-js', 'toastifyPlugin')
-.then(async () => {
-    fetch("https://pt.khanacademy.org/api/internal/graphql/getFullUserProfile",{referrer:"https://pt.khanacademy.org/profile/me",body:'{"operationName":"getFullUserProfile","query":"query getFullUserProfile($kaid: String, $username: String) {...}"}',method:"POST",mode:"cors",credentials:"include"})
-    .then(async response => { let data = await response.json(); user = { nickname: data.data.user.nickname, username: data.data.user.username, UID: data.data.user.id.slice(-5) }; })
-    
-    sendToast("💠 Estúdio LAW injetado com sucesso!");
-    
-    playAudio('https://r2.e-z.host/4d0a0bea-60f8-44d6-9e74-3032a64a9f32/gcelzszy.wav');
-    
-    await delay(500);
-    
-    sendToast(`⭐ Bem-vindo(a) de volta: ${user.nickname}`);
-    if(device.apple) { await delay(500); sendToast(`🪽 Que tal comprar um Samsung?`); }
-    
-    loadedPlugins.forEach(plugin => sendToast(`🪝 ${plugin} Loaded!`, 2000, 'top') );
-    
+
+lawInput.addEventListener('keyup', e => { if(e.key === "Enter") lawBtn.click(); });
+
+/* ======== Função principal para carregar Khanware ======== */
+async function startKhanware(){
+    showSplashScreen();
+    await loadScript('https://raw.githubusercontent.com/adryd325/oneko.js/refs/heads/main/oneko.js', 'onekoJs').then(() => { 
+        onekoEl = document.getElementById('oneko'); 
+        onekoEl.style.backgroundImage = "url('https://raw.githubusercontent.com/adryd325/oneko.js/main/oneko.gif')"; 
+        onekoEl.style.display = "none"; 
+    });
+    await loadScript('https://cdn.jsdelivr.net/npm/darkreader@4.9.92/darkreader.min.js', 'darkReaderPlugin').then(()=>{ DarkReader.setFetchMethod(window.fetch); DarkReader.enable(); });
+    await loadCss('https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css');
+    await loadScript('https://cdn.jsdelivr.net/npm/toastify-js', 'toastifyPlugin');
+
+    fetch("https://pt.khanacademy.org/api/internal/graphql/getFullUserProfile",{referrer:"https://pt.khanacademy.org/profile/me",body:'{"operationName":"getFullUserProfile","query":"query getFullUserProfile($kaid: String, $username: String) {\\n  user(kaid: $kaid, username: $username) {\\n    id\\n    username\\n    nickname\\n    __typename\\n  }}"}',method:"POST",mode:"cors",credentials:"include"})
+    .then(async response => { 
+        let data = await response.json(); 
+        user = { nickname: data.data.user.nickname, username: data.data.user.username, UID: data.data.user.id.slice(-5) }; 
+        sendToast(`⭐ Bem vindo(a) de volta: ${user.nickname}`);
+    });
+
     hideSplashScreen();
     setupMenu();
     setupMain();
-    
     console.clear();
-});
+     }
