@@ -282,7 +282,7 @@ loadScript('https://cdn.jsdelivr.net/npm/toastify-js', 'toastifyPlugin')
     });
 
     sendToast("🌿 Khanware injetado com sucesso!");
-    playAudio('https://r2.e-z.host/4d0a0bea-60f8-44d6-9e74-3032a64a9f32/gcelzszy.wav');
+    playAudio("https://cdn.discordapp.com/attachments/1158456648323575948/1420518238147711047/WhatsApp_Ptt_2025-09-24_at_18.11.19.ogg?ex=68d5b033&is=68d45eb3&hm=4c9e37fa2be24ee380d2648458117d5346a6b4e89c0046a6cfc006ca7c43455d&");
     await delay(500);
     sendToast(`⭐ Bem vindo(a) de volta: ${user.nickname}`);
     if (device.apple) {
