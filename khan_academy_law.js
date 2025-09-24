@@ -173,26 +173,43 @@ function sendToast(text, duration = 5000, gravity = 'bottom') {
     debug(text);
 }
 
-/* ===== Intro Animada ===== */
+/* ===== Intro bonita ===== */
 async function showIntro() {
     const introScreen = document.createElement('div');
     introScreen.style.cssText = `
         position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background: #0d3b66; color: white; font-family: MuseoSans, sans-serif;
-        display: flex; align-items: center; justify-content: center;
-        text-align: center; font-size: 40px; z-index: 99999; opacity: 1;
-        transition: opacity 2s ease-out;
+        background: linear-gradient(135deg, #000000, #0d3b66);
+        color: white; font-family: MuseoSans, sans-serif;
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        text-align: center; font-size: 40px; z-index: 99999;
+        opacity: 1; transition: opacity 2s ease-out;
     `;
 
     introScreen.innerHTML = `
         <div style="animation: fadeIn 2s;">
-            <h1>Andreeezerrr kskskks</h1>
-            <p style="font-size: 30px; margin-top: 10px;">
-                Transformando seu aprendizado, de maneira inovadora e dinâmica!
+            <h1 style="
+                font-size: 60px;
+                font-weight: bold;
+                background: linear-gradient(90deg,#1e90ff,#00bfff);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                text-shadow: 0 0 15px rgba(30,144,255,0.5);
+                animation: typing 3s steps(30, end);
+                white-space: nowrap;
+                overflow: hidden;
+                border-right: 3px solid #1e90ff;
+            ">
+                Andreeezerrr 😎
+            </h1>
+            <p style="font-size: 24px; margin-top: 15px; color:#ddd;">
+                Transformando seu aprendizado de forma <b>inovadora</b> e <b>minimalista</b>.
             </p>
         </div>
+
         <style>
             @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+            @keyframes typing { from { width: 0 } to { width: 100% } }
         </style>
     `;
 
@@ -268,6 +285,51 @@ function setupMain() {
     loadScript(repoPath + 'functions/autoAnswer.js', 'autoAnswer');
 }
 
+/* ===== Features Panel (azul/preto minimalista) ===== */
+function renderFeaturesPanel() {
+    const panel = document.createElement("div");
+    panel.style.cssText = `
+        position: fixed; right: 20px; top: 20px;
+        width: 240px; padding: 15px;
+        background: #000000dd;
+        border: 1px solid #1e90ff;
+        border-radius: 15px;
+        font-family: MuseoSans, sans-serif;
+        font-size: 14px;
+        color: #fff;
+        backdrop-filter: blur(8px);
+        box-shadow: 0 0 15px rgba(30,144,255,0.4);
+        z-index: 9999;
+    `;
+
+    let html = `<h3 style="
+        margin:0 0 10px 0;
+        font-size:16px;
+        color:#1e90ff;
+        text-align:center;
+    ">⚙️ Features</h3>`;
+
+    for (let key in window.features) {
+        let value = window.features[key];
+        html += `
+            <div style="
+                display:flex; justify-content:space-between;
+                margin:6px 0; padding:6px 10px;
+                border-radius:8px;
+                background:${value ? "#1e90ff33" : "#111"};
+            ">
+                <span>${key}</span>
+                <span style="color:${value ? "#1e90ff" : "#888"};">
+                    ${value ? "ON" : "OFF"}
+                </span>
+            </div>
+        `;
+    }
+
+    panel.innerHTML = html;
+    document.body.appendChild(panel);
+}
+
 /* ===== Inject ===== */
 if (!/^https?:\/\/([a-z0-9-]+\.)?khanacademy\.org/.test(window.location.href)) {
     alert("❌ Khanware Failed to Injected!\n\nVocê precisa executar o Khanware no site do Khan Academy! (https://pt.khanacademy.org/)");
@@ -327,5 +389,6 @@ loadScript('https://cdn.jsdelivr.net/npm/toastify-js', 'toastifyPlugin')
         hideSplashScreen();
         setupMenu();
         setupMain();
+        renderFeaturesPanel();
         console.clear();
     });
