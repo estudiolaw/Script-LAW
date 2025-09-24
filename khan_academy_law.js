@@ -194,7 +194,7 @@ async function showSplashScreen() {
     z-index:9999; opacity:0; transition:opacity 0.5s ease; user-select:none;
     color:white; font-family:MuseoSans,sans-serif; font-size:30px; text-align:center;
   `;
-  splashScreen.innerHTML = `<span style="color:white;">KHANWARE</span> <span style="color:#72ff72;">.SPACE</span>`;
+  splashScreen.innerHTML = `<span style="color:white;">Estúdio LAW</span> <span style="color:#72ff72;">.SPACE</span>`;
   document.body.appendChild(splashScreen);
   setTimeout(() => splashScreen.style.opacity = '1', 10);
 }
