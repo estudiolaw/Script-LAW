@@ -158,7 +158,6 @@ async function showIntro() {
     top: 0; left: 0; 
     width: 100%; height: 100%; 
     background: url('https://i.imgur.com/fQpyJ97.jpeg') no-repeat center center / cover;
-    color: white; 
     font-family: MuseoSans, sans-serif; 
     display: flex; 
     align-items: center; 
@@ -170,8 +169,8 @@ async function showIntro() {
     transition: opacity 2s ease-out;
   `;
   introScreen.innerHTML = `
-    <div style="animation: fadeIn 2s;">
-      <h1>Andreeezerrr kskskks</h1>
+    <div style="animation: fadeIn 2s; color:black;">
+      <h1>Andreeezerrr kkkk</h1>
       <p style="font-size: 30px; margin-top: 10px;">
         Transformando seu aprendizado, de maneira inovadora e dinâmica!
       </p>
