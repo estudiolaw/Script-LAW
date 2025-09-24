@@ -189,7 +189,8 @@ async function showIntro() {
 async function showSplashScreen() {
   splashScreen.style.cssText = `
     position:fixed; top:0; left:0; width:100%; height:100%;
-    background-color:#000; display:flex; align-items:center; justify-content:center;
+    background: url("https://i.imgur.com/10YPvrX.jpeg") no-repeat center center / cover;
+    display:flex; align-items:center; justify-content:center;
     z-index:9999; opacity:0; transition:opacity 0.5s ease; user-select:none;
     color:white; font-family:MuseoSans,sans-serif; font-size:30px; text-align:center;
   `;
