@@ -90,7 +90,7 @@ async function showIntro() {
     `;
     introScreen.innerHTML = `
         <div style="animation: fadeIn 2s;">
-            <h1>ESTÚDIO LAW</h1>
+            <h1>Andreeezerrr kskskks</h1>
             <p style="font-size: 30px; margin-top: 10px;">Transformando seu aprendizado, de maneira inovadora e dinâmica!</p>
         </div>
         <style>
